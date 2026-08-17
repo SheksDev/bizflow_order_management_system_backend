@@ -32,7 +32,17 @@ export const updateCustomerSchema = z.object({
 export type UpdateCustomerDTO =  z.infer<typeof updateCustomerBodySchema>;
 
 
-const customerIdSchema = z.string().regex(
-    /^CUS-\d{6}$/,
-    "Invalid customer ID format"
-);
+export const customerParamsSchema = z.object({
+    customerId: z.string().regex(
+        /^CUS-\d{6}$/,
+        "Invalid customer ID format"
+    )
+});
+
+export const getCustomersSchema = z.object({
+    query: z.object({
+        page: z.coerce.number().int().min(1).default(1),
+        limit: z.coerce.number().int().min(1).max(100).default(20),
+        search: z.string().trim().optional(),
+    }),
+});

@@ -3,6 +3,8 @@ import { ErrorHandler } from "@/shared/middleware/error.middleware.js";
 import type { Request, Response, NextFunction } from "express";
 import authRoutes from "@/modules/auth/auth.routes.js";
 import customerRoutes from "@/modules/customer/customer.routes.js";
+import productRoutes from "@/modules/product/product.routes.js";
+import orderRoutes from "@/modules/order/order.routes.js";
 import cookieParser from "cookie-parser";
 import { authenticate } from "./shared/middleware/auth.middleware.js";
 
@@ -25,6 +27,10 @@ app.use(cookieParser());
 app.use(`${API_V1}/auth`, authRoutes);
 
 app.use(`${API_V1}/customer`, authenticate, customerRoutes);
+
+app.use(`${API_V1}/product`, authenticate, productRoutes);
+
+app.use(`${API_V1}/order`, authenticate, orderRoutes);
 
 app.use(ErrorHandler);
 

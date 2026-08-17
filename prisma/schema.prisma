@@ -30,7 +30,7 @@ enum DeliveryMethod {
 enum OrderStatus {
   PENDING
   CONFIRMED
-  PREPARING
+  IN_PROGRESS
   READY
   OUT_FOR_DELIVERY
   DELIVERED
@@ -117,8 +117,9 @@ enum StorageProvider {
 enum CounterName {
   USER
   CUSTOMER
-  PRODUCT
+  PRODUCT_CATEGORY
   ORDER
+  ITEM
   PAYMENT
   EXPENSE
   RECEIPT
@@ -200,7 +201,7 @@ model Customer {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  orders Order[] @relation("CustomerOrders")
+  orders    Order[] @relation("CustomerOrders")
 
   @@index([name])
   @@index([phone])
@@ -209,6 +210,8 @@ model Customer {
 
 model ProductCategory {
   id String @id @default(cuid())
+
+  categoryId  String     @unique
 
   name        String @unique
   description String @default("")
@@ -253,12 +256,13 @@ model Order {
 
   deliveryDate    DateTime
   deliveryAddress String?
-
   deliveryMethod DeliveryMethod
 
   status OrderStatus @default(PENDING)
 
-  totalAmount Decimal @db.Decimal(12, 2)
+  originalTotal Decimal @db.Decimal(12, 2)
+  currentTotal Decimal @db.Decimal(12, 2)
+
   notes       String  @default("")
 
   items OrderItem[]
@@ -287,6 +291,8 @@ model Order {
 
 model OrderItem {
   id String @id @default(cuid())
+
+  itemId    String   @unique
 
   orderId String
   order   Order  @relation(fields: [orderId], references: [id])

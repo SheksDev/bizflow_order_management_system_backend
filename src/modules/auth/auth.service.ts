@@ -2,7 +2,7 @@ import { prisma } from "@/config/prisma.js";
 import type { LoginDTO, RegisterDTO } from "./auth.validation.js";
 import { AppError } from "@/shared/errors/AppError.js";
 import { HTTP_STATUS } from "@/shared/constants/http-status.js";
-import { USER_SELECT } from "@/shared/constants/user-select.js";
+import { USER_SELECT } from "@/shared/constants/prisma-select.js";
 import { comparePassword, hashPassword } from "@/shared/utils/password.js";
 import { generatePublicId } from "@/shared/utils/generate-public-id.js";
 import { Prisma } from "@prisma/client";
@@ -55,7 +55,7 @@ export const registerUserService = async (
 
         const userId = `USER-${String(sequence).padStart(6, "0")}`;
 
-        const user =await tx.user.create({
+        const user = await tx.user.create({
 
             data: {
                 userId,
