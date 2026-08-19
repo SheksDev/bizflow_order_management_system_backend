@@ -600,5 +600,350 @@ export const components = {
         },
       },
     },
+
+    // ─── Expense Category ───────────────────────────────
+    CreateExpenseCategoryBody: {
+      type: "object",
+      required: ["name"],
+      properties: {
+        name: {
+          type: "string",
+          minLength: 2,
+          maxLength: 100,
+          example: "Office Supplies",
+        },
+        description: {
+          type: "string",
+          maxLength: 500,
+          example: "General office supplies and materials",
+        },
+      },
+    },
+    UpdateExpenseCategoryBody: {
+      type: "object",
+      properties: {
+        name: {
+          type: "string",
+          minLength: 2,
+          maxLength: 100,
+          example: "Office Supplies",
+        },
+        description: {
+          type: "string",
+          maxLength: 500,
+          example: "General office supplies and materials",
+        },
+        isActive: {
+          type: "boolean",
+          example: true,
+        },
+      },
+    },
+    ExpenseCategory: {
+      type: "object",
+      properties: {
+        id: { type: "string", example: "clxyz..." },
+        categoryId: { type: "string", example: "ECAT-000001" },
+        name: { type: "string", example: "Office Supplies" },
+        description: {
+          type: "string",
+          example: "General office supplies and materials",
+        },
+        isActive: { type: "boolean", example: true },
+        createdAt: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-15T10:30:00.000Z",
+        },
+        updatedAt: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-15T10:30:00.000Z",
+        },
+      },
+    },
+
+    // ─── Expense ────────────────────────────────────────
+    CreateExpenseBody: {
+      type: "object",
+      required: ["expenseCategoryId", "title", "amount"],
+      properties: {
+        orderNumber: {
+          type: "string",
+          example: "ORD-000001",
+        },
+        expenseCategoryId: {
+          type: "string",
+          example: "ECAT-000001",
+        },
+        title: {
+          type: "string",
+          minLength: 2,
+          maxLength: 150,
+          example: "Packaging materials",
+        },
+        amount: {
+          type: "number",
+          exclusiveMinimum: 0,
+          example: 5000.0,
+        },
+        expenseDate: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-15T10:30:00.000Z",
+        },
+        description: {
+          type: "string",
+          maxLength: 500,
+          example: "Bubble wrap and boxes for order ORD-000001",
+        },
+        receiptUrl: {
+          type: "string",
+          format: "uri",
+          example: "https://example.com/receipt.jpg",
+        },
+      },
+    },
+    UpdateExpenseBody: {
+      type: "object",
+      properties: {
+        orderNumber: { type: "string", example: "ORD-000001" },
+        expenseCategoryId: { type: "string", example: "ECAT-000001" },
+        title: {
+          type: "string",
+          minLength: 2,
+          maxLength: 150,
+          example: "Packaging materials",
+        },
+        amount: {
+          type: "number",
+          exclusiveMinimum: 0,
+          example: 5000.0,
+        },
+        expenseDate: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-15T10:30:00.000Z",
+        },
+        description: {
+          type: "string",
+          maxLength: 500,
+          example: "Bubble wrap and boxes",
+        },
+        receiptUrl: {
+          type: "string",
+          format: "uri",
+          example: "https://example.com/receipt.jpg",
+        },
+      },
+    },
+    Expense: {
+      type: "object",
+      properties: {
+        id: { type: "string", example: "clxyz..." },
+        expenseNumber: { type: "string", example: "EXP-000001" },
+        orderNumber: {
+          type: "string",
+          nullable: true,
+          example: "ORD-000001",
+        },
+        expenseCategoryId: { type: "string", example: "clxyz..." },
+        title: { type: "string", example: "Packaging materials" },
+        amount: { type: "number", example: 5000.0 },
+        expenseDate: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-15T10:30:00.000Z",
+        },
+        description: {
+          type: "string",
+          example: "Bubble wrap and boxes",
+        },
+        receiptUrl: {
+          type: "string",
+          nullable: true,
+          example: null,
+        },
+        createdAt: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-15T10:30:00.000Z",
+        },
+        updatedAt: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-15T10:30:00.000Z",
+        },
+      },
+    },
+    ExpenseListResponse: {
+      type: "object",
+      properties: {
+        success: { type: "boolean", example: true },
+        message: {
+          type: "string",
+          example: "Expenses retrieved successfully!",
+        },
+        data: {
+          type: "object",
+          properties: {
+            expenses: {
+              type: "array",
+              items: { $ref: "#/components/schemas/Expense" },
+            },
+            pagination: {
+              $ref: "#/components/schemas/PaginationMeta",
+            },
+          },
+        },
+      },
+    },
+    ExpenseSummary: {
+      type: "object",
+      properties: {
+        totalAmount: { type: "number", example: 150000.0 },
+        totalCount: { type: "integer", example: 25 },
+        byCategory: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              categoryId: { type: "string", example: "ECAT-000001" },
+              name: { type: "string", example: "Office Supplies" },
+              total: { type: "number", example: 50000.0 },
+              count: { type: "integer", example: 10 },
+            },
+          },
+        },
+      },
+    },
+
+    // ─── Payment ────────────────────────────────────────
+    PaymentMethod: {
+      type: "string",
+      enum: ["CASH", "BANK_TRANSFER", "MOBILE_MONEY", "POS", "OTHER"],
+    },
+    RefundType: {
+      type: "string",
+      enum: ["PAYMENT", "TIP"],
+    },
+    CreatePaymentBody: {
+      type: "object",
+      required: ["amount", "paymentMethod"],
+      properties: {
+        amount: {
+          type: "number",
+          exclusiveMinimum: 0,
+          example: 25000.0,
+        },
+        paymentMethod: { $ref: "#/components/schemas/PaymentMethod" },
+        paymentDate: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-15T10:30:00.000Z",
+        },
+        reference: {
+          type: "string",
+          example: "TRF-20260115-001",
+        },
+        tipAmount: {
+          type: "number",
+          minimum: 0,
+          default: 0,
+          example: 2000.0,
+        },
+        notes: {
+          type: "string",
+          example: "Partial payment for order",
+        },
+      },
+    },
+    Payment: {
+      type: "object",
+      properties: {
+        id: { type: "string", example: "clxyz..." },
+        paymentNumber: { type: "string", example: "PAY-000001" },
+        orderId: { type: "string", example: "clxyz..." },
+        amount: { type: "number", example: 25000.0 },
+        paymentMethod: { $ref: "#/components/schemas/PaymentMethod" },
+        paymentDate: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-15T10:30:00.000Z",
+        },
+        paymentSource: {
+          type: "string",
+          enum: ["MANUAL", "ONLINE"],
+          example: "MANUAL",
+        },
+        reference: {
+          type: "string",
+          nullable: true,
+          example: "TRF-20260115-001",
+        },
+        isTip: { type: "boolean", example: false },
+        notes: { type: "string", example: "Partial payment" },
+        createdAt: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-15T10:30:00.000Z",
+        },
+      },
+    },
+    CreateRefundBody: {
+      type: "object",
+      required: ["amount", "refundMethod", "refundType", "reason"],
+      properties: {
+        amount: {
+          type: "number",
+          exclusiveMinimum: 0,
+          example: 10000.0,
+        },
+        refundMethod: { $ref: "#/components/schemas/PaymentMethod" },
+        refundType: { $ref: "#/components/schemas/RefundType" },
+        reason: {
+          type: "string",
+          minLength: 3,
+          maxLength: 500,
+          example: "Customer returned item",
+        },
+        refundDate: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-20T10:30:00.000Z",
+        },
+        reference: {
+          type: "string",
+          example: "REF-20260120-001",
+        },
+      },
+    },
+    Refund: {
+      type: "object",
+      properties: {
+        id: { type: "string", example: "clxyz..." },
+        refundNumber: { type: "string", example: "REF-000001" },
+        paymentId: { type: "string", example: "clxyz..." },
+        amount: { type: "number", example: 10000.0 },
+        refundMethod: { $ref: "#/components/schemas/PaymentMethod" },
+        refundType: { $ref: "#/components/schemas/RefundType" },
+        reason: { type: "string", example: "Customer returned item" },
+        refundDate: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-20T10:30:00.000Z",
+        },
+        reference: {
+          type: "string",
+          nullable: true,
+          example: "REF-20260120-001",
+        },
+        createdAt: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-20T10:30:00.000Z",
+        },
+      },
+    },
   },
 };

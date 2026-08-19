@@ -1,21 +1,32 @@
-export const productPaths = {
-  "/api/v1/product/create": {
+export const paymentPaths = {
+  "/api/v1/payments/{orderNumber}/payments/create": {
     post: {
-      tags: ["Product Category"],
-      summary: "Create a product category",
-      description: "Create a new product category. Requires ADMIN role.",
+      tags: ["Payment"],
+      summary: "Record a payment for an order",
+      description:
+        "Record a new payment against an order. Requires ADMIN or STAFF role.",
       security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: "path",
+          name: "orderNumber",
+          required: true,
+          schema: { type: "string" },
+          description: "Order number",
+          example: "ORD-000001",
+        },
+      ],
       requestBody: {
         required: true,
         content: {
           "application/json": {
-            schema: { $ref: "#/components/schemas/CreateProductCategoryBody" },
+            schema: { $ref: "#/components/schemas/CreatePaymentBody" },
           },
         },
       },
       responses: {
-        "200": {
-          description: "Product category created successfully",
+        "201": {
+          description: "Payment recorded successfully",
           content: {
             "application/json": {
               schema: {
@@ -24,11 +35,9 @@ export const productPaths = {
                   success: { type: "boolean", example: true },
                   message: {
                     type: "string",
-                    example: "Product category created successfully!",
+                    example: "Payment recorded successfully!",
                   },
-                  data: {
-                    $ref: "#/components/schemas/ProductCategory",
-                  },
+                  data: { $ref: "#/components/schemas/Payment" },
                 },
               },
             },
@@ -51,6 +60,227 @@ export const productPaths = {
           },
         },
         "403": {
+          description: "Forbidden",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "404": {
+          description: "Order not found",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+      },
+    },
+  },
+
+  "/api/v1/payments/{orderNumber}/payments": {
+    get: {
+      tags: ["Payment"],
+      summary: "Get all payments for an order",
+      description:
+        "Retrieve all payment records for a specific order. Requires ADMIN or STAFF role.",
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: "path",
+          name: "orderNumber",
+          required: true,
+          schema: { type: "string" },
+          description: "Order number",
+          example: "ORD-000001",
+        },
+      ],
+      responses: {
+        "200": {
+          description: "Payment records retrieved successfully",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  success: { type: "boolean", example: true },
+                  message: {
+                    type: "string",
+                    example:
+                      "Order ORD-000001 payment records retrieved successfully!",
+                  },
+                  data: {
+                    type: "array",
+                    items: { $ref: "#/components/schemas/Payment" },
+                  },
+                },
+              },
+            },
+          },
+        },
+        "401": {
+          description: "Unauthorized",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "403": {
+          description: "Forbidden",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "404": {
+          description: "Order not found",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+      },
+    },
+  },
+
+  "/api/v1/payments/{paymentNumber}": {
+    get: {
+      tags: ["Payment"],
+      summary: "Get a single payment",
+      description:
+        "Retrieve a single payment record by payment number. Requires ADMIN or STAFF role.",
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: "path",
+          name: "paymentNumber",
+          required: true,
+          schema: { type: "string" },
+          description: "Payment number",
+          example: "PAY-000001",
+        },
+      ],
+      responses: {
+        "200": {
+          description: "Payment retrieved successfully",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  success: { type: "boolean", example: true },
+                  message: {
+                    type: "string",
+                    example:
+                      "Payment PAY-000001 retrieved successfully!",
+                  },
+                  data: { $ref: "#/components/schemas/Payment" },
+                },
+              },
+            },
+          },
+        },
+        "400": {
+          description: "Invalid payment number",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "401": {
+          description: "Unauthorized",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "403": {
+          description: "Forbidden",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "404": {
+          description: "Payment not found",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+      },
+    },
+  },
+
+  "/api/v1/payments/{paymentNumber}/refunds/create": {
+    post: {
+      tags: ["Payment"],
+      summary: "Process a refund on a payment",
+      description:
+        "Create a refund against an existing payment. Requires ADMIN role.",
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: "path",
+          name: "paymentNumber",
+          required: true,
+          schema: { type: "string" },
+          description: "Payment number to refund",
+          example: "PAY-000001",
+        },
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/CreateRefundBody" },
+          },
+        },
+      },
+      responses: {
+        "201": {
+          description: "Refund processed successfully",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  success: { type: "boolean", example: true },
+                  message: {
+                    type: "string",
+                    example: "Refund processed successfully!",
+                  },
+                  data: { $ref: "#/components/schemas/Refund" },
+                },
+              },
+            },
+          },
+        },
+        "400": {
+          description: "Invalid payment number or validation error",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "401": {
+          description: "Unauthorized",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "403": {
           description: "Forbidden — requires ADMIN role",
           content: {
             "application/json": {
@@ -58,280 +288,8 @@ export const productPaths = {
             },
           },
         },
-        "409": {
-          description: "Category name already exists",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-      },
-    },
-  },
-
-  "/api/v1/product/all": {
-    get: {
-      tags: ["Product Category"],
-      summary: "Get all product categories",
-      description:
-        "Retrieve all active product categories. Requires ADMIN or STAFF role.",
-      security: [{ bearerAuth: [] }],
-      responses: {
-        "200": {
-          description: "Product categories retrieved successfully",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  success: { type: "boolean", example: true },
-                  message: {
-                    type: "string",
-                    example:
-                      "Product categories retrieved successfully!",
-                  },
-                  data: {
-                    type: "array",
-                    items: {
-                      $ref: "#/components/schemas/ProductCategory",
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        "401": {
-          description: "Unauthorized",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-        "403": {
-          description: "Forbidden",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-      },
-    },
-  },
-
-  "/api/v1/product/{categoryId}": {
-    get: {
-      tags: ["Product Category"],
-      summary: "Get a product category",
-      description: "Retrieve a single product category by ID. Requires ADMIN role.",
-      security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          in: "path",
-          name: "categoryId",
-          required: true,
-          schema: { type: "string" },
-          description: "Product category ID",
-          example: "PROD-000001",
-        },
-      ],
-      responses: {
-        "200": {
-          description: "Product category retrieved successfully",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  success: { type: "boolean", example: true },
-                  message: {
-                    type: "string",
-                    example: "Product category retrieved successfully!",
-                  },
-                  data: {
-                    $ref: "#/components/schemas/ProductCategory",
-                  },
-                },
-              },
-            },
-          },
-        },
-        "400": {
-          description: "Invalid category ID",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-        "401": {
-          description: "Unauthorized",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-        "403": {
-          description: "Forbidden",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
         "404": {
-          description: "Category not found",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-      },
-    },
-    patch: {
-      tags: ["Product Category"],
-      summary: "Update a product category",
-      description: "Update a product category by ID. Requires ADMIN role.",
-      security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          in: "path",
-          name: "categoryId",
-          required: true,
-          schema: { type: "string" },
-          description: "Product category ID",
-          example: "PROD-000001",
-        },
-      ],
-      requestBody: {
-        required: true,
-        content: {
-          "application/json": {
-            schema: { $ref: "#/components/schemas/UpdateProductCategoryBody" },
-          },
-        },
-      },
-      responses: {
-        "200": {
-          description: "Product category updated successfully",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  success: { type: "boolean", example: true },
-                  message: {
-                    type: "string",
-                    example:
-                      "Product category PROD-000001 updated successfully!",
-                  },
-                  data: {
-                    $ref: "#/components/schemas/ProductCategory",
-                  },
-                },
-              },
-            },
-          },
-        },
-        "400": {
-          description: "Invalid category ID or validation error",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-        "401": {
-          description: "Unauthorized",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-        "403": {
-          description: "Forbidden",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-        "404": {
-          description: "Category not found",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-      },
-    },
-    delete: {
-      tags: ["Product Category"],
-      summary: "Delete a product category",
-      description: "Delete a product category by ID. Requires ADMIN role.",
-      security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          in: "path",
-          name: "categoryId",
-          required: true,
-          schema: { type: "string" },
-          description: "Product category ID",
-          example: "PROD-000001",
-        },
-      ],
-      responses: {
-        "200": {
-          description: "Product category deleted successfully",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  success: { type: "boolean", example: true },
-                  message: {
-                    type: "string",
-                    example:
-                      "Product category PROD-000001 deleted successfully!",
-                  },
-                },
-              },
-            },
-          },
-        },
-        "400": {
-          description: "Invalid category ID",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-        "401": {
-          description: "Unauthorized",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-        "403": {
-          description: "Forbidden",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-        "404": {
-          description: "Category not found",
+          description: "Payment not found",
           content: {
             "application/json": {
               schema: { $ref: "#/components/schemas/ErrorResponse" },

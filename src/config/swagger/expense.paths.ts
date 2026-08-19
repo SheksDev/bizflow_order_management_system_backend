@@ -1,21 +1,22 @@
-export const productPaths = {
-  "/api/v1/product/create": {
+export const expensePaths = {
+  "/api/v1/expenses/create": {
     post: {
-      tags: ["Product Category"],
-      summary: "Create a product category",
-      description: "Create a new product category. Requires ADMIN role.",
+      tags: ["Expense"],
+      summary: "Record a new expense",
+      description:
+        "Record a new expense. Requires ADMIN or STAFF role.",
       security: [{ bearerAuth: [] }],
       requestBody: {
         required: true,
         content: {
           "application/json": {
-            schema: { $ref: "#/components/schemas/CreateProductCategoryBody" },
+            schema: { $ref: "#/components/schemas/CreateExpenseBody" },
           },
         },
       },
       responses: {
-        "200": {
-          description: "Product category created successfully",
+        "201": {
+          description: "Expense recorded successfully",
           content: {
             "application/json": {
               schema: {
@@ -24,11 +25,9 @@ export const productPaths = {
                   success: { type: "boolean", example: true },
                   message: {
                     type: "string",
-                    example: "Product category created successfully!",
+                    example: "Expense recorded successfully",
                   },
-                  data: {
-                    $ref: "#/components/schemas/ProductCategory",
-                  },
+                  data: { $ref: "#/components/schemas/Expense" },
                 },
               },
             },
@@ -51,15 +50,7 @@ export const productPaths = {
           },
         },
         "403": {
-          description: "Forbidden — requires ADMIN role",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-        "409": {
-          description: "Category name already exists",
+          description: "Forbidden",
           content: {
             "application/json": {
               schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -70,16 +61,116 @@ export const productPaths = {
     },
   },
 
-  "/api/v1/product/all": {
+  "/api/v1/expenses/all": {
     get: {
-      tags: ["Product Category"],
-      summary: "Get all product categories",
+      tags: ["Expense"],
+      summary: "Get all expenses",
       description:
-        "Retrieve all active product categories. Requires ADMIN or STAFF role.",
+        "Retrieve a paginated list of expenses with optional filters. Requires ADMIN or STAFF role.",
       security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: "query",
+          name: "orderNumber",
+          schema: { type: "string" },
+          description: "Filter by order number",
+        },
+        {
+          in: "query",
+          name: "expenseCategoryId",
+          schema: { type: "string" },
+          description: "Filter by expense category ID",
+        },
+        {
+          in: "query",
+          name: "startDate",
+          schema: { type: "string", format: "date-time" },
+          description: "Filter expenses from this date",
+        },
+        {
+          in: "query",
+          name: "endDate",
+          schema: { type: "string", format: "date-time" },
+          description: "Filter expenses up to this date",
+        },
+        {
+          in: "query",
+          name: "page",
+          schema: { type: "integer", minimum: 1, default: 1 },
+          description: "Page number",
+        },
+        {
+          in: "query",
+          name: "limit",
+          schema: { type: "integer", minimum: 1, maximum: 100, default: 20 },
+          description: "Items per page",
+        },
+      ],
       responses: {
         "200": {
-          description: "Product categories retrieved successfully",
+          description: "Expenses retrieved successfully",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ExpenseListResponse" },
+            },
+          },
+        },
+        "401": {
+          description: "Unauthorized",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "403": {
+          description: "Forbidden",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+      },
+    },
+  },
+
+  "/api/v1/expenses/summary": {
+    get: {
+      tags: ["Expense"],
+      summary: "Get expense summary",
+      description:
+        "Retrieve a summary of expenses with optional filters. Requires ADMIN or STAFF role.",
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: "query",
+          name: "startDate",
+          schema: { type: "string", format: "date-time" },
+          description: "Filter from this date",
+        },
+        {
+          in: "query",
+          name: "endDate",
+          schema: { type: "string", format: "date-time" },
+          description: "Filter up to this date",
+        },
+        {
+          in: "query",
+          name: "orderNumber",
+          schema: { type: "string" },
+          description: "Filter by order number",
+        },
+        {
+          in: "query",
+          name: "expenseCategoryId",
+          schema: { type: "string" },
+          description: "Filter by expense category ID",
+        },
+      ],
+      responses: {
+        "200": {
+          description: "Expenses summary retrieved successfully",
           content: {
             "application/json": {
               schema: {
@@ -88,14 +179,10 @@ export const productPaths = {
                   success: { type: "boolean", example: true },
                   message: {
                     type: "string",
-                    example:
-                      "Product categories retrieved successfully!",
+                    example: "Expenses summary retrieved successfully!",
                   },
                   data: {
-                    type: "array",
-                    items: {
-                      $ref: "#/components/schemas/ProductCategory",
-                    },
+                    $ref: "#/components/schemas/ExpenseSummary",
                   },
                 },
               },
@@ -122,25 +209,26 @@ export const productPaths = {
     },
   },
 
-  "/api/v1/product/{categoryId}": {
+  "/api/v1/expenses/{expenseNumber}": {
     get: {
-      tags: ["Product Category"],
-      summary: "Get a product category",
-      description: "Retrieve a single product category by ID. Requires ADMIN role.",
+      tags: ["Expense"],
+      summary: "Get a single expense",
+      description:
+        "Retrieve a single expense by expense number. Requires ADMIN or STAFF role.",
       security: [{ bearerAuth: [] }],
       parameters: [
         {
           in: "path",
-          name: "categoryId",
+          name: "expenseNumber",
           required: true,
           schema: { type: "string" },
-          description: "Product category ID",
-          example: "PROD-000001",
+          description: "Expense number",
+          example: "EXP-000001",
         },
       ],
       responses: {
         "200": {
-          description: "Product category retrieved successfully",
+          description: "Expense retrieved successfully",
           content: {
             "application/json": {
               schema: {
@@ -149,18 +237,16 @@ export const productPaths = {
                   success: { type: "boolean", example: true },
                   message: {
                     type: "string",
-                    example: "Product category retrieved successfully!",
+                    example: "Expense EXP-000001 retrieved successfully!",
                   },
-                  data: {
-                    $ref: "#/components/schemas/ProductCategory",
-                  },
+                  data: { $ref: "#/components/schemas/Expense" },
                 },
               },
             },
           },
         },
         "400": {
-          description: "Invalid category ID",
+          description: "Invalid expense number",
           content: {
             "application/json": {
               schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -184,7 +270,7 @@ export const productPaths = {
           },
         },
         "404": {
-          description: "Category not found",
+          description: "Expense not found",
           content: {
             "application/json": {
               schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -194,31 +280,32 @@ export const productPaths = {
       },
     },
     patch: {
-      tags: ["Product Category"],
-      summary: "Update a product category",
-      description: "Update a product category by ID. Requires ADMIN role.",
+      tags: ["Expense"],
+      summary: "Update an expense",
+      description:
+        "Update an existing expense by expense number. Requires ADMIN role.",
       security: [{ bearerAuth: [] }],
       parameters: [
         {
           in: "path",
-          name: "categoryId",
+          name: "expenseNumber",
           required: true,
           schema: { type: "string" },
-          description: "Product category ID",
-          example: "PROD-000001",
+          description: "Expense number",
+          example: "EXP-000001",
         },
       ],
       requestBody: {
         required: true,
         content: {
           "application/json": {
-            schema: { $ref: "#/components/schemas/UpdateProductCategoryBody" },
+            schema: { $ref: "#/components/schemas/UpdateExpenseBody" },
           },
         },
       },
       responses: {
         "200": {
-          description: "Product category updated successfully",
+          description: "Expense updated successfully",
           content: {
             "application/json": {
               schema: {
@@ -227,19 +314,16 @@ export const productPaths = {
                   success: { type: "boolean", example: true },
                   message: {
                     type: "string",
-                    example:
-                      "Product category PROD-000001 updated successfully!",
+                    example: "Expense EXP-000001 updated successfully!",
                   },
-                  data: {
-                    $ref: "#/components/schemas/ProductCategory",
-                  },
+                  data: { $ref: "#/components/schemas/Expense" },
                 },
               },
             },
           },
         },
         "400": {
-          description: "Invalid category ID or validation error",
+          description: "Invalid expense number or validation error",
           content: {
             "application/json": {
               schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -255,7 +339,7 @@ export const productPaths = {
           },
         },
         "403": {
-          description: "Forbidden",
+          description: "Forbidden — requires ADMIN role",
           content: {
             "application/json": {
               schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -263,7 +347,7 @@ export const productPaths = {
           },
         },
         "404": {
-          description: "Category not found",
+          description: "Expense not found",
           content: {
             "application/json": {
               schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -273,23 +357,23 @@ export const productPaths = {
       },
     },
     delete: {
-      tags: ["Product Category"],
-      summary: "Delete a product category",
-      description: "Delete a product category by ID. Requires ADMIN role.",
+      tags: ["Expense"],
+      summary: "Delete an expense",
+      description: "Delete an expense by expense number. Requires ADMIN role.",
       security: [{ bearerAuth: [] }],
       parameters: [
         {
           in: "path",
-          name: "categoryId",
+          name: "expenseNumber",
           required: true,
           schema: { type: "string" },
-          description: "Product category ID",
-          example: "PROD-000001",
+          description: "Expense number",
+          example: "EXP-000001",
         },
       ],
       responses: {
         "200": {
-          description: "Product category deleted successfully",
+          description: "Expense deleted successfully",
           content: {
             "application/json": {
               schema: {
@@ -298,8 +382,7 @@ export const productPaths = {
                   success: { type: "boolean", example: true },
                   message: {
                     type: "string",
-                    example:
-                      "Product category PROD-000001 deleted successfully!",
+                    example: "Expense EXP-000001 deleted successfully!",
                   },
                 },
               },
@@ -307,7 +390,7 @@ export const productPaths = {
           },
         },
         "400": {
-          description: "Invalid category ID",
+          description: "Invalid expense number",
           content: {
             "application/json": {
               schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -323,7 +406,7 @@ export const productPaths = {
           },
         },
         "403": {
-          description: "Forbidden",
+          description: "Forbidden — requires ADMIN role",
           content: {
             "application/json": {
               schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -331,7 +414,7 @@ export const productPaths = {
           },
         },
         "404": {
-          description: "Category not found",
+          description: "Expense not found",
           content: {
             "application/json": {
               schema: { $ref: "#/components/schemas/ErrorResponse" },

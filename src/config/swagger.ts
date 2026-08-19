@@ -4,6 +4,9 @@ import { authPaths } from "./swagger/auth.paths.js";
 import { customerPaths } from "./swagger/customer.paths.js";
 import { productPaths } from "./swagger/product.paths.js";
 import { orderPaths } from "./swagger/order.paths.js";
+import { expenseCategoryPaths } from "./swagger/expenseCategory.paths.js";
+import { expensePaths } from "./swagger/expense.paths.js";
+import { paymentPaths } from "./swagger/payment.paths.js";
 
 const spec = {
   openapi: "3.0.3",
@@ -34,10 +37,21 @@ const spec = {
     {
       name: "Product Category",
       description: "Product category management.",
-    },
-    {
+    },    {
       name: "Order",
       description: "Order management — create, update status, add/cancel items, cancel orders.",
+    },
+    {
+      name: "Expense Category",
+      description: "Expense category management — create, read, update, and deactivate.",
+    },
+    {
+      name: "Expense",
+      description: "Expense recording, listing, summary, and management.",
+    },
+    {
+      name: "Payment",
+      description: "Payment recording for orders, retrieval, and refund processing.",
     },
   ],
   paths: {
@@ -45,6 +59,9 @@ const spec = {
     ...customerPaths,
     ...productPaths,
     ...orderPaths,
+    ...expenseCategoryPaths,
+    ...expensePaths,
+    ...paymentPaths,
   },
   components,
 };
