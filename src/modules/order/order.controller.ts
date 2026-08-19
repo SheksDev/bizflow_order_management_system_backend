@@ -32,7 +32,7 @@ export const createOrder = async (
     res: Response
 ) => {
 
-    const order = await createOrderService(req.body, req.user!.userId);
+    const order = await createOrderService(req.body, req.user!.id);
 
     sendSuccess(
         res,
@@ -160,7 +160,7 @@ export const updateOrderItem = async (
 
     const { orderNumber, itemId } = validateOrderRequestParams(req);
 
-    const item = updateOrderItemService(orderNumber, itemId, req.body);
+    const item = await updateOrderItemService(orderNumber, itemId, req.body);
 
     return sendSuccess(
         res,

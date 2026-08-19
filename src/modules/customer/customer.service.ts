@@ -18,6 +18,10 @@ const findCustomer = async (
         where: {
             customerId,
             deletedAt: null
+        },
+
+        include: {
+            orders: true,
         }
     });
 
@@ -93,6 +97,9 @@ export const getAllCustomersService = async (data: CustomerQuery) => {
             orderBy: {
                 createdAt: "desc",
             },
+            include: {
+                orders: true,
+            }
         }),
 
         prisma.customer.count({

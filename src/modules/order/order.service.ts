@@ -7,6 +7,8 @@ import { CounterName, OrderItemStatus, OrderStatus } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import { OrderQuery } from "./order.types.js";
 import { canTransitionOrderStatus } from "./order.constants.js";
+import { findOrder } from "@/shared/constants/findOrder.js";
+import { addMoney, decimal, multiplyMoney, subtractMoney } from "@/shared/utils/money.js";
 
 // ================= CREATE ORDER ====================
 
@@ -50,43 +52,43 @@ const findCategory = async (
     return category;
 }
 
-const findOrder = async (
-    orderNumber: string,
-    tx?: Prisma.TransactionClient
-) => {
+// const findOrder = async (
+//     orderNumber: string,
+//     tx?: Prisma.TransactionClient
+// ) => {
 
-    const order = await (prisma || tx).order.findUnique({
+//     const order = await (prisma || tx).order.findUnique({
 
-        where: {
-            orderNumber,
-            deletedAt: null,
-        },
+//         where: {
+//             orderNumber,
+//             deletedAt: null,
+//         },
 
-        include: {
+//         include: {
             
-            customer: true,
+//             customer: true,
 
-            items: {
-                orderBy: {
-                    createdAt: "asc"
-                },
-            },
+//             items: {
+//                 orderBy: {
+//                     createdAt: "asc"
+//                 },
+//             },
 
-            payments: true,
-            expenses: true,
-        },
-    });
+//             payments: true,
+//             expenses: true,
+//         },
+//     });
 
-    if(!order) {
-        throw new AppError(`Order ${orderNumber} Not Found!`, HTTP_STATUS.NOT_FOUND);
-    }
+//     if(!order) {
+//         throw new AppError(`Order ${orderNumber} Not Found!`, HTTP_STATUS.NOT_FOUND);
+//     }
 
-    if (order.status === OrderStatus.CANCELLED) {
-        throw new AppError("Cancelled orders cannot be edited", HTTP_STATUS.BAD_REQUEST);
-    }
+//     if (order.status === OrderStatus.CANCELLED) {
+//         throw new AppError("Cancelled orders cannot be edited", HTTP_STATUS.BAD_REQUEST);
+//     }
 
-    return order;
-}
+//     return order;
+// }
 
 const findItem = async (
     itemId: string,
@@ -143,13 +145,16 @@ export const createOrderService = async (
 
         const customer = await findCustomer(data.customerId, tx);
 
+        // console.log(customer);
+
         const calculatedItems = [];
 
         for (const item of data.items) {
 
             await findCategory(item.categoryId, tx);
 
-            const totalPrice = item.quantity * item.unitPrice;
+            // const totalPrice = item.quantity * Prisma.Decimal(item.unitPrice);
+            const totalPrice = multiplyMoney(item.quantity, item.unitPrice);
 
             calculatedItems.push({
                 ...item,
@@ -159,8 +164,8 @@ export const createOrderService = async (
 
         const totalAmount =
             calculatedItems.reduce(
-                (sum, item) => sum + item.totalPrice,
-                0
+                (sum, item) => addMoney(sum, item.totalPrice),
+                new Prisma.Decimal(0)
         );
 
         const sequenceOrder = await generatePublicId(tx, CounterName.ORDER)
@@ -201,8 +206,8 @@ export const createOrderService = async (
                         },
                         productName: item.productName,
                         quantity: item.quantity,
-                        unitPrice: item.unitPrice,
-                        totalPrice: item.totalPrice,
+                        unitPrice: decimal(item.unitPrice),
+                        totalPrice: decimal(item.totalPrice),
                         details: item.details as Prisma.InputJsonValue,
                     })),
                 },
@@ -250,7 +255,15 @@ export const getAllOrdersService = async (
 
                 items: {
                     where: {
-                        status: OrderItemStatus.CONFIRMED && OrderItemStatus.DELIVERED && OrderItemStatus.PENDING && OrderItemStatus.PREPARING && OrderItemStatus.READY,
+                        status: {
+                            in: [
+                                OrderItemStatus.CONFIRMED,
+                                OrderItemStatus.DELIVERED,
+                                OrderItemStatus.PENDING,
+                                OrderItemStatus.PREPARING,
+                                OrderItemStatus.READY,
+                            ],
+                        },
                     },
 
                     orderBy: {
@@ -329,8 +342,8 @@ export const updateOrderTotalService = async (
         },
 
         data: {
-            originalTotal: total,
-            currentTotal: total,
+            originalTotal: decimal(total),
+            currentTotal: decimal(total),
         }
     })
 }
@@ -349,7 +362,7 @@ export const addOrderItemService = async (
 
         const category = await findCategory(categoryId, tx);
 
-        const totalPrice = data.quantity * data.unitPrice;
+        const totalPrice = multiplyMoney(data.quantity, data.unitPrice);
 
         const sequenceItem = await generatePublicId(tx, CounterName.ITEM)
                 
@@ -358,12 +371,12 @@ export const addOrderItemService = async (
         const item = await tx.orderItem.create({
 
             data: {
-                orderId: order.id,
-                itemId: itemId,
-                productCategoryId: category.id,
+                orderNumber: order.orderNumber,
+                itemId,
+                productCategoryId: category.categoryId,
                 productName: data.productName,
                 quantity: data.quantity,
-                unitPrice: data.unitPrice,
+                unitPrice: decimal(data.unitPrice),
                 totalPrice,
                 details: data.details as Prisma.InputJsonValue
             },
@@ -411,12 +424,14 @@ export const updateOrderItemService = async (
 
         const newQuantity = data.quantity ?? item.quantity;
         const newUnitPrice = data.unitPrice !== undefined
-            ? new Prisma.Decimal(data.unitPrice)
+            ? decimal(data.unitPrice)
             : item.unitPrice
 
-        const newTotal = new Prisma.Decimal(newQuantity).mul(newUnitPrice);
+        // const newTotal = new Prisma.Decimal(newQuantity).mul(newUnitPrice);
+        const newTotal = multiplyMoney(newQuantity, newUnitPrice);
 
-        const difference = newTotal.minus(item.totalPrice);
+        // const difference = newTotal.minus(item.totalPrice);
+        const difference = subtractMoney(newTotal, item.totalPrice)
 
         const updatedItem = await tx.orderItem.update({
             where: {

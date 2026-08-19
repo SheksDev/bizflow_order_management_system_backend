@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const orderItemSchema = z.object({
+export const orderItemBodySchema = z.object({
 
     categoryId: z.string(),
     productName: z.string().trim().min(1),
@@ -17,9 +17,13 @@ export const orderItemSchema = z.object({
     details: z.record(z.string(), z.unknown()).optional(),
 });
 
-export const updateOrderItemSchema = orderItemSchema.partial();
+export const orderItemSchema = z.object({
+    body: orderItemBodySchema,
+});
 
-export type AddOrderItemDTO = z.infer<typeof orderItemSchema>;
+export const updateOrderItemSchema = orderItemBodySchema.partial();
+
+export type AddOrderItemDTO = z.infer<typeof orderItemBodySchema>;
 export type UpdateOrderItemDTO = z.infer<typeof updateOrderItemSchema>;
 
 
@@ -40,7 +44,7 @@ export const createOrderBodySchema = z.object({
     notes: z.string().trim().optional(),
 
     items: z
-        .array(orderItemSchema)
+        .array(orderItemBodySchema)
         .min(1),
 });
 

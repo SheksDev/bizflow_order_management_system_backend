@@ -5,7 +5,8 @@ export enum CounterName {
     PAYMENT = "PAYMENT",
     EXPENSE = "EXPENSE",
     RECEIPT = "RECEIPT",
-    PRODUCT = "PRODUCT"
+    PRODUCT = "PRODUCT",
+    REFUND = "REFUND"
 }
 
 // export const COUNTER_PREFIX: Record<CounterName, string> = {
