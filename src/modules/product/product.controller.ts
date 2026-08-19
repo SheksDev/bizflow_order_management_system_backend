@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { createProductCategoryService, deleteProductCategoryService, getAProductCategoryService, getProductCategoriesService, updateProductCategoryService } from "./product.service.js";
+import { createProductCategoryService, deactivateProductCategoryService, getAProductCategoryService, getProductCategoriesService, updateProductCategoryService } from "./product.service.js";
 import { sendSuccess } from "@/shared/utils/response.js";
 import { HTTP_STATUS } from "@/shared/constants/http-status.js";
 import { AppError } from "@/shared/errors/AppError.js";
@@ -77,7 +77,7 @@ export const updateProductCategory = async (
     )
 }
 
-export const deleteProductCategory = async (
+export const deactivateProductCategory = async (
     req: Request,
     res: Response
 ) => {
@@ -88,7 +88,7 @@ export const deleteProductCategory = async (
         throw new AppError("Invalid Customer Id", HTTP_STATUS.BAD_REQUEST)
     }
 
-    await deleteProductCategoryService(categoryId);
+    await deactivateProductCategoryService(categoryId);
 
     sendSuccess(
         res,

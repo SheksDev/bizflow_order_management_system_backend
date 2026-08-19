@@ -95,7 +95,7 @@ export const updateProductCategoryService = async (
     });
 }
 
-export const deleteProductCategoryService = async (
+export const deactivateProductCategoryService = async (
     categoryId: string
 ) => {
 

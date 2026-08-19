@@ -4,7 +4,7 @@ import { UserRole } from "@prisma/client";
 import { Router } from "express";
 import { createProductCategorySchema, productCategoryParamsSchema, updateProductCategorySchema } from "./product.validation.js";
 import { asyncHandler } from "@/shared/handlers/asyncHandler.js";
-import { createProductCategory, deleteProductCategory, getAProductCategory, getProductCategories, updateProductCategory } from "./product.controller.js";
+import { createProductCategory, deactivateProductCategory, getAProductCategory, getProductCategories, updateProductCategory } from "./product.controller.js";
 
 
 const router = Router();
@@ -41,7 +41,7 @@ router.delete(
     "/:categoryId",
     authorize(UserRole.ADMIN),
     validate(updateProductCategorySchema),
-    asyncHandler(deleteProductCategory)
+    asyncHandler(deactivateProductCategory)
 )
 
 

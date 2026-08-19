@@ -274,8 +274,8 @@ export const productPaths = {
     },
     delete: {
       tags: ["Product Category"],
-      summary: "Delete a product category",
-      description: "Delete a product category by ID. Requires ADMIN role.",
+      summary: "Deactivate a product category",
+      description: "Dactivate a product category by ID. Requires ADMIN role.",
       security: [{ bearerAuth: [] }],
       parameters: [
         {
