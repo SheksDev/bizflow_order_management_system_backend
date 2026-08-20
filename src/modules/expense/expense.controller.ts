@@ -1,7 +1,7 @@
 import { HTTP_STATUS } from "@/shared/constants/http-status.js";
 import { AppError } from "@/shared/errors/AppError.js";
 import type { Request, Response } from "express";
-import { createExpenseService, deleteExpenseService, getExpenseService, getExpensesService, getExpenseSummaryService, updateExpenseService } from "./expense.service.js";
+import { createExpenseService, deleteExpenseService, getExpenseService, getExpensesService, getExpenseSummaryService, getMonthlyExpenseReportService,  updateExpenseService } from "./expense.service.js";
 import { sendSuccess } from "@/shared/utils/response.js";
 import { expenseSummaryQuerySchema, getExpensesQuerySchema } from "./expense.validation.js";
 
@@ -94,6 +94,23 @@ export const getExpenseSummary = async (
         HTTP_STATUS.OK,
         "Expenses summary retrieved successfully!",
         summary
+    )
+}
+
+
+
+export const getMonthlyExpenseReport = async (
+    req: Request,
+    res: Response
+) => {
+
+    const report = await getMonthlyExpenseReportService(expenseSummaryQuerySchema.parse(req.query));
+
+    return sendSuccess(
+        res,
+        HTTP_STATUS.OK,
+        "Expenses report retrieved successfully!",
+        report
     )
 }
 

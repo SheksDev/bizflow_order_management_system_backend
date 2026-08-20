@@ -4,10 +4,11 @@ import { findOrder } from "@/shared/constants/findOrder.js";
 import { AppError } from "@/shared/errors/AppError.js";
 import { HTTP_STATUS } from "@/shared/constants/http-status.js";
 import { generatePublicId } from "@/shared/utils/generate-public-id.js";
-import { CounterName, PaymentSource, PaymentStatus } from "@prisma/client";
+import { CounterName, LedgerDirection, LedgerEntryType, LedgerReferenceType, PaymentSource, PaymentStatus } from "@prisma/client";
 import { USER_SELECT } from "@/shared/constants/prisma-select.js";
 import { Prisma } from "@prisma/client";
 import { addMoney, decimal, maxZero, subtractMoney } from "@/shared/utils/money.js";
+import { createLedgerEntry, findLedgerAccount, generateLedgerNumber } from "../ledgerEntry/ledger.service.js";
 
 
 const findPayment = async (
@@ -98,6 +99,43 @@ export const createPaymentService = async (
                 receivedById,
             },
         });
+
+        const ledgerType = payment.tipAmount
+            ? LedgerEntryType.TIP
+            : LedgerEntryType.ORDER_PAYMENT;
+
+        // const sequenceLedger = await generatePublicId(tx, CounterName.ENTRY);
+        // const entryNumber = `LEDGER-${String(sequenceLedger).padStart(6, "0")}`;
+
+        const entryNumber = await generateLedgerNumber(tx);
+
+        const mainCashAccount = await findLedgerAccount(tx);
+
+        await createLedgerEntry(tx, {
+
+            ledgerAccountId: mainCashAccount.id,
+
+            entryNumber,
+
+            type: ledgerType,
+
+            direction: LedgerDirection.IN,
+
+            amount: decimal(payment.amount),
+
+            description: payment.tipAmount
+                ? `Tip received for ${payment.paymentNumber}`
+                : `Payment receieved for ${payment.orderNumber}`,
+
+            referenceType: LedgerReferenceType.PAYMENT,
+
+            referenceId: payment.id,
+
+            createdById: receivedById,
+
+            orderNumber: payment.orderNumber,
+        })
+
 
         return {
             payment,
@@ -319,6 +357,33 @@ export const createRefundService = async (
                 processedById,
             },
         });
+
+        const entryNumber = await generateLedgerNumber(tx);
+
+        const mainCashAccount = await findLedgerAccount(tx);
+
+        await createLedgerEntry(tx, {
+
+            ledgerAccountId: mainCashAccount.id,
+
+            entryNumber,
+
+            type: LedgerEntryType.REFUND,
+
+            direction: LedgerDirection.OUT,
+
+            amount: decimal(refund.amount),
+
+            description: `Refund for payment ${payment.paymentNumber}`,
+
+            referenceType: LedgerReferenceType.REFUND,
+
+            referenceId: refund.id,
+
+            createdById: processedById,
+
+            orderNumber: payment.orderNumber,
+        })
 
         const newTotalRefunded = addMoney(totalRefunded, data.amount);
 

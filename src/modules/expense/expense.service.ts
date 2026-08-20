@@ -1,5 +1,5 @@
 import { prisma } from "@/config/prisma.js";
-import { Prisma } from "@prisma/client";
+import { LedgerDirection, LedgerEntryType, LedgerReferenceType, Prisma } from "@prisma/client";
 import { HTTP_STATUS } from "@/shared/constants/http-status.js";
 import { AppError } from "@/shared/errors/AppError.js";
 import { CreateExpenseDTO, ExpenseSummaryQueryDTO, GetExpensesQueryDTO, UpdateExpenseDTO } from "./expense.validation.js";
@@ -8,6 +8,17 @@ import { CounterName } from "@prisma/client";
 import { findOrder } from "@/shared/constants/findOrder.js";
 import { addMoney, decimal } from "@/shared/utils/money.js";
 import { USER_SELECT } from "@/shared/constants/prisma-select.js";
+import { createLedgerEntry, findLedgerAccount, generateLedgerNumber } from "../ledgerEntry/ledger.service.js";
+import { getMonthKey } from "@/shared/utils/date.js";
+
+
+
+type MonthlyExpense = {
+    total: Prisma.Decimal;
+    order: Prisma.Decimal;
+    business: Prisma.Decimal;
+    count: number;
+};
 
 
 
@@ -89,7 +100,7 @@ export const createExpenseService = async (
         const sequenceExpense = await generatePublicId(tx, CounterName.EXPENSE);
         const expenseId = `EXP-${String(sequenceExpense).padStart(6, "0")}`; 
 
-        return await tx.expense.create({
+        const expense = await tx.expense.create({
 
             data: {
                 expenseNumber: expenseId,
@@ -111,6 +122,35 @@ export const createExpenseService = async (
                 recordedById,
             }
         })
+
+        const entryNumber = await generateLedgerNumber(tx);
+        
+        const mainCashAccount = await findLedgerAccount(tx);
+
+        await createLedgerEntry(tx, {
+
+            ledgerAccountId: mainCashAccount.id,
+
+            entryNumber,
+
+            type: LedgerEntryType.EXPENSE,
+
+            direction: LedgerDirection.OUT,
+
+            amount: decimal(expense.amount),
+
+            description: `Expense: ${expense.title}`,
+
+            referenceType: LedgerReferenceType.EXPENSE,
+
+            referenceId: expense.id,
+
+            createdById: recordedById,
+
+            orderNumber: expense.orderNumber,
+        })
+
+        return expense;
     })
 }
 
@@ -319,11 +359,126 @@ export const getExpenseSummaryService = async (
             );
 
     return {
+        period: {
+            startDate,
+            endDate,
+        },
         totalExpenses,
         expenseCount: expenses.length,
         byCategory,
     };
 }
+
+
+
+export const getMonthlyExpenseReportService = async (
+    query: ExpenseSummaryQueryDTO
+) => {
+
+    const {
+        startDate,
+        endDate,
+    } = query;
+
+    if (startDate && endDate && startDate >= endDate) {
+        throw new AppError(
+            "Start date must be before end date",
+            HTTP_STATUS.BAD_REQUEST
+        );
+    }
+
+    const expenses = await prisma.expense.findMany({
+        where: {
+            deletedAt: null,
+
+            ...(startDate || endDate
+                ? {
+                    expenseDate: {
+                        ...(startDate && {
+                            gte: startDate,
+                        }),
+
+                        ...(endDate && {
+                            lt: endDate,
+                        }),
+                    },
+                }
+                : {}),
+        },
+
+        select: {
+            amount: true,
+            orderNumber: true,
+            expenseDate: true,
+        },
+    });
+
+    const monthly = new Map<string, MonthlyExpense>();
+
+    for (const expense of expenses) {
+
+        const key = getMonthKey(
+            expense.expenseDate
+        );
+
+        const existing = monthly.get(key);
+
+        if (existing) {
+
+            existing.total = addMoney(
+                existing.total,
+                expense.amount
+            );
+
+            existing.count += 1;
+
+            if (expense.orderNumber) {
+
+                existing.order = addMoney(
+                    existing.order,
+                    expense.amount
+                );
+
+            } else {
+
+                existing.business = addMoney(
+                    existing.business,
+                    expense.amount
+                );
+            }
+
+        } else {
+
+            monthly.set(key, {
+                total: expense.amount,
+
+                order: expense.orderNumber
+                    ? expense.amount
+                    : decimal(0),
+
+                business: expense.orderNumber
+                    ? decimal(0)
+                    : expense.amount,
+
+                count: 1,
+            });
+        }
+    }
+
+    return Array.from(
+        monthly.entries()
+    ).map(([month, data]) => ({
+        month,
+
+        total: data.total,
+
+        order: data.order,
+
+        business: data.business,
+
+        count: data.count,
+    }));
+};
 
 
 

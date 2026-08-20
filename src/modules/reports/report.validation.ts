@@ -12,3 +12,15 @@ export const profitReportSchema = z.object({
 });
 
 export type ProfitReportQueryDTO = z.infer<typeof profitReportQuerySchema>;
+
+
+export const cashFlowReportQuerySchema = z.object({
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date(),
+});
+
+export const cashFlowReportSchema = z.object({
+    query: cashFlowReportQuerySchema,
+});
+
+export type CashFlowReportQueryDTO = z.infer<typeof cashFlowReportQuerySchema>;

@@ -19,12 +19,12 @@ router.post(
 
 
 
-router.get(
-    "/summary",
-    authorize(UserRole.ADMIN, UserRole.STAFF),
-    validate(expenseSummarySchema),
-    asyncHandler(getExpenseSummary)
-)
+// router.get(
+//     "/summary",
+//     authorize(UserRole.ADMIN, UserRole.STAFF),
+//     validate(expenseSummarySchema),
+//     asyncHandler(getExpenseSummary)
+// )
 
 
 
