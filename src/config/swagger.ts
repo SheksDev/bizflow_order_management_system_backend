@@ -7,6 +7,8 @@ import { orderPaths } from "./swagger/order.paths.js";
 import { expenseCategoryPaths } from "./swagger/expenseCategory.paths.js";
 import { expensePaths } from "./swagger/expense.paths.js";
 import { paymentPaths } from "./swagger/payment.paths.js";
+import { ledgerPaths } from "./swagger/ledger.paths.js";
+import { reportPaths } from "./swagger/report.paths.js";
 
 const spec = {
   openapi: "3.0.3",
@@ -53,6 +55,14 @@ const spec = {
       name: "Payment",
       description: "Payment recording for orders, retrieval, and refund processing.",
     },
+    {
+      name: "Ledger Entry",
+      description: "Ledger entries — list, balance, and individual entry retrieval.",
+    },
+    {
+      name: "Reports",
+      description: "Financial reports — profit, expenses, and cash flow.",
+    },
   ],
   paths: {
     ...authPaths,
@@ -62,6 +72,8 @@ const spec = {
     ...expenseCategoryPaths,
     ...expensePaths,
     ...paymentPaths,
+    ...ledgerPaths,
+    ...reportPaths,
   },
   components,
 };

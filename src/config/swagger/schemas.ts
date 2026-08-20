@@ -945,5 +945,238 @@ export const components = {
         },
       },
     },
+
+    // ─── Ledger Entry ─────────────────────────────────
+    LedgerEntryType: {
+      type: "string",
+      enum: [
+        "ORDER_PAYMENT",
+        "TIP",
+        "EXPENSE",
+        "REFUND",
+        "ADJUSTMENT",
+        "OPENING_BALANCE",
+      ],
+    },
+    LedgerDirection: {
+      type: "string",
+      enum: ["IN", "OUT"],
+    },
+    LedgerEntry: {
+      type: "object",
+      properties: {
+        id: { type: "string", example: "clxyz..." },
+        entryNumber: { type: "string", example: "LEDGER-000001" },
+        type: { $ref: "#/components/schemas/LedgerEntryType" },
+        direction: { $ref: "#/components/schemas/LedgerDirection" },
+        amount: { type: "number", example: 25000.0 },
+        balanceAfter: { type: "number", example: 175000.0 },
+        description: {
+          type: "string",
+          nullable: true,
+          example: "Payment for order ORD-000001",
+        },
+        referenceType: {
+          type: "string",
+          enum: ["PAYMENT", "EXPENSE", "REFUND", "OPENING_BALANCE", "ADJUSTMENT"],
+          example: "PAYMENT",
+        },
+        referenceId: { type: "string", example: "PAY-000001" },
+        orderNumber: {
+          type: "string",
+          nullable: true,
+          example: "ORD-000001",
+        },
+        ledgerAccountId: { type: "string", example: "clxyz..." },
+        createdById: { type: "string", example: "clxyz..." },
+        createdAt: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-15T10:30:00.000Z",
+        },
+      },
+    },
+    LedgerEntryListResponse: {
+      type: "object",
+      properties: {
+        success: { type: "boolean", example: true },
+        message: {
+          type: "string",
+          example: "Ledger entries retrieved successfully!",
+        },
+        data: {
+          type: "object",
+          properties: {
+            entries: {
+              type: "array",
+              items: { $ref: "#/components/schemas/LedgerEntry" },
+            },
+            pagination: {
+              $ref: "#/components/schemas/PaginationMeta",
+            },
+          },
+        },
+      },
+    },
+    LedgerBalance: {
+      type: "object",
+      properties: {
+        id: { type: "string", example: "clxyz..." },
+        name: { type: "string", example: "MAIN_CASH" },
+        currentBalance: { type: "number", example: 250000.0 },
+        createdAt: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-01T00:00:00.000Z",
+        },
+        updatedAt: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-15T10:30:00.000Z",
+        },
+      },
+    },
+
+    // ─── Reports ──────────────────────────────────────
+    DateRangeQuery: {
+      type: "object",
+      required: ["startDate", "endDate"],
+      properties: {
+        startDate: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-01T00:00:00.000Z",
+        },
+        endDate: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-31T23:59:59.999Z",
+        },
+      },
+    },
+    ProfitReport: {
+      type: "object",
+      properties: {
+        period: {
+          type: "object",
+          properties: {
+            startDate: { type: "string", format: "date-time" },
+            endDate: { type: "string", format: "date-time" },
+          },
+        },
+        revenue: {
+          type: "object",
+          properties: {
+            gross: { type: "number", example: 500000.0 },
+            refunds: { type: "number", example: 15000.0 },
+            net: { type: "number", example: 485000.0 },
+          },
+        },
+        tips: { type: "number", example: 20000.0 },
+        expenses: {
+          type: "object",
+          properties: {
+            order: { type: "number", example: 50000.0 },
+            business: { type: "number", example: 30000.0 },
+            total: { type: "number", example: 80000.0 },
+          },
+        },
+        profit: { type: "number", example: 405000.0 },
+        profitMargin: { type: "number", example: 83.5 },
+        orderCount: { type: "integer", example: 25 },
+        expenseCount: { type: "integer", example: 15 },
+      },
+    },
+    MonthlyProfitReportItem: {
+      type: "object",
+      properties: {
+        month: { type: "string", example: "2026-01" },
+        revenue: {
+          type: "object",
+          properties: {
+            gross: { type: "number", example: 200000.0 },
+            refunds: { type: "number", example: 5000.0 },
+            net: { type: "number", example: 195000.0 },
+          },
+        },
+        tips: { type: "number", example: 8000.0 },
+        expenses: {
+          type: "object",
+          properties: {
+            order: { type: "number", example: 20000.0 },
+            business: { type: "number", example: 10000.0 },
+            total: { type: "number", example: 30000.0 },
+          },
+        },
+        profit: { type: "number", example: 165000.0 },
+        profitMargin: { type: "number", example: 84.6 },
+        orderCount: { type: "integer", example: 10 },
+        expenseCount: { type: "integer", example: 6 },
+      },
+    },
+    CashFlowReport: {
+      type: "object",
+      properties: {
+        period: {
+          type: "object",
+          properties: {
+            startDate: { type: "string", format: "date-time" },
+            endDate: { type: "string", format: "date-time" },
+          },
+        },
+        openingBalance: { type: "number", example: 100000.0 },
+        inflow: { type: "number", example: 500000.0 },
+        outflow: { type: "number", example: 80000.0 },
+        netCashFlow: { type: "number", example: 420000.0 },
+        closingBalance: { type: "number", example: 520000.0 },
+        byType: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              type: { $ref: "#/components/schemas/LedgerEntryType" },
+              direction: { $ref: "#/components/schemas/LedgerDirection" },
+              amount: { type: "number", example: 200000.0 },
+            },
+          },
+        },
+      },
+    },
+    ExpenseSummaryReport: {
+      type: "object",
+      properties: {
+        period: {
+          type: "object",
+          properties: {
+            startDate: { type: "string", format: "date-time" },
+            endDate: { type: "string", format: "date-time" },
+          },
+        },
+        totalExpenses: { type: "number", example: 150000.0 },
+        expenseCount: { type: "integer", example: 25 },
+        byCategory: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              categoryId: { type: "string", example: "ECAT-000001" },
+              categoryName: { type: "string", example: "Office Supplies" },
+              amount: { type: "number", example: 50000.0 },
+              count: { type: "integer", example: 10 },
+            },
+          },
+        },
+      },
+    },
+    MonthlyExpenseReportItem: {
+      type: "object",
+      properties: {
+        month: { type: "string", example: "2026-01" },
+        total: { type: "number", example: 30000.0 },
+        order: { type: "number", example: 20000.0 },
+        business: { type: "number", example: 10000.0 },
+        count: { type: "integer", example: 6 },
+      },
+    },
   },
 };
