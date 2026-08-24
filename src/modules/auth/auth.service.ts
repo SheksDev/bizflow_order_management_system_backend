@@ -64,6 +64,7 @@ export const registerUserService = async (
                 lastName: data.lastName,
                 email: data.email,
                 phone: data.phone,
+                role: data.role,
 
                 passwordHash,
             },

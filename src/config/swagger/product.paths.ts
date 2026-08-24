@@ -1,5 +1,5 @@
 export const productPaths = {
-  "/api/v1/product/create": {
+  "/api/v1/products/create": {
     post: {
       tags: ["Product Category"],
       summary: "Create a product category",
@@ -70,7 +70,7 @@ export const productPaths = {
     },
   },
 
-  "/api/v1/product/all": {
+  "/api/v1/products/all": {
     get: {
       tags: ["Product Category"],
       summary: "Get all product categories",
@@ -122,7 +122,7 @@ export const productPaths = {
     },
   },
 
-  "/api/v1/product/{categoryId}": {
+  "/api/v1/products/{categoryId}": {
     get: {
       tags: ["Product Category"],
       summary: "Get a product category",

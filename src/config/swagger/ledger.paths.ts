@@ -1,5 +1,5 @@
 export const ledgerPaths = {
-  "/api/v1/ledger/all": {
+  "/api/v1/ledgers/all": {
     get: {
       tags: ["Ledger Entry"],
       summary: "Get all ledger entries",
@@ -66,7 +66,7 @@ export const ledgerPaths = {
       },
     },
   },
-  "/api/v1/ledger/balance": {
+  "/api/v1/ledgers/balance": {
     get: {
       tags: ["Ledger Entry"],
       summary: "Get ledger balance",
@@ -99,7 +99,7 @@ export const ledgerPaths = {
       },
     },
   },
-  "/api/v1/ledger/{entryNumber}": {
+  "/api/v1/ledgers/{entryNumber}": {
     get: {
       tags: ["Ledger Entry"],
       summary: "Get a ledger entry by entry number",

@@ -20,6 +20,8 @@ const router = Router();
 
 router.post(
     "/register",
+    authenticate,
+    authorize(UserRole.ADMIN),
     validate(registerSchema),
     asyncHandler(registerUser)
 )

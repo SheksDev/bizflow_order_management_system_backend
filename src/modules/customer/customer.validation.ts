@@ -33,10 +33,12 @@ export type UpdateCustomerDTO =  z.infer<typeof updateCustomerBodySchema>;
 
 
 export const customerParamsSchema = z.object({
-    customerId: z.string().regex(
-        /^CUS-\d{6}$/,
-        "Invalid customer ID format"
-    )
+    params: z.object({
+        customerId: z.string().regex(
+            /^CUS-\d{6}$/,
+            "Invalid customer ID format"
+        ),
+    }),
 });
 
 export const getCustomersSchema = z.object({

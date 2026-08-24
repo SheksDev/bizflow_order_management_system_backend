@@ -1,10 +1,18 @@
 export const customerPaths = {
-  "/api/v1/customer/create": {
+  "/api/v1/customers/create": {
     post: {
       tags: ["Customer"],
       summary: "Create a customer",
       description: "Create a new customer record.",
       security: [{ bearerAuth: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/CreateCustomerBody" },
+          },
+        },
+      },
       responses: {
         "201": {
           description: "Customer created successfully",
@@ -52,7 +60,7 @@ export const customerPaths = {
     },
   },
 
-  "/api/v1/customer/all": {
+  "/api/v1/customers/all": {
     get: {
       tags: ["Customer"],
       summary: "Get all customers",
@@ -108,7 +116,7 @@ export const customerPaths = {
     },
   },
 
-  "/api/v1/customer/{customerId}": {
+  "/api/v1/customers/{customerId}": {
     get: {
       tags: ["Customer"],
       summary: "Get a customer",

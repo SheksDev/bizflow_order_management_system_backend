@@ -1,5 +1,5 @@
 export const orderPaths = {
-  "/api/v1/order/create": {
+  "/api/v1/orders/create": {
     post: {
       tags: ["Order"],
       summary: "Create an order",
@@ -61,7 +61,7 @@ export const orderPaths = {
     },
   },
 
-  "/api/v1/order/all": {
+  "/api/v1/orders/all": {
     get: {
       tags: ["Order"],
       summary: "Get all orders",
@@ -135,7 +135,7 @@ export const orderPaths = {
     },
   },
 
-  "/api/v1/order/{orderNumber}/total": {
+  "/api/v1/orders/{orderNumber}/total": {
     patch: {
       tags: ["Order"],
       summary: "Update order total",
@@ -215,7 +215,7 @@ export const orderPaths = {
     },
   },
 
-  "/api/v1/order/{orderNumber}/items": {
+  "/api/v1/orders/{orderNumber}/items": {
     post: {
       tags: ["Order"],
       summary: "Add an item to an order",
@@ -237,7 +237,7 @@ export const orderPaths = {
           required: true,
           schema: { type: "string" },
           description: "Product category ID for the item",
-          example: "PCAT-000001",
+          example: "PROD-000001",
         },
       ],
       requestBody: {
@@ -260,7 +260,7 @@ export const orderPaths = {
                   message: {
                     type: "string",
                     example:
-                      "New item added to order ORD-000001, category PCAT-000001 successfully!",
+                      "New item added to order ORD-000001, category PROD-000001 successfully!",
                   },
                   data: { $ref: "#/components/schemas/OrderItem" },
                 },
@@ -304,7 +304,7 @@ export const orderPaths = {
     },
   },
 
-  "/api/v1/order/{orderNumber}/items/{itemId}": {
+  "/api/v1/orders/{orderNumber}/items/{itemId}": {
     patch: {
       tags: ["Order"],
       summary: "Update an order item",
@@ -471,7 +471,7 @@ export const orderPaths = {
     },
   },
 
-  "/api/v1/order/{orderNumber}/status": {
+  "/api/v1/orders/{orderNumber}/status": {
     patch: {
       tags: ["Order"],
       summary: "Update order status",
@@ -552,7 +552,7 @@ export const orderPaths = {
     },
   },
 
-  "/api/v1/order/{orderNumber}/cancel": {
+  "/api/v1/orders/{orderNumber}/cancel": {
     post: {
       tags: ["Order"],
       summary: "Cancel an order",
@@ -632,7 +632,7 @@ export const orderPaths = {
     },
   },
 
-  "/api/v1/order/{orderNumber}": {
+  "/api/v1/orders/{orderNumber}": {
     get: {
       tags: ["Order"],
       summary: "Get an order",

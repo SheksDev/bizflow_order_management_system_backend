@@ -352,7 +352,7 @@ export const updateOrderTotalService = async (
 
 export const addOrderItemService = async (
     orderNumber: string,
-    categoryId: string,
+    // categoryId: string,
     data: AddOrderItemDTO
 ) => {
 
@@ -360,7 +360,7 @@ export const addOrderItemService = async (
 
         const order = await findOrder(orderNumber, tx);
 
-        const category = await findCategory(categoryId, tx);
+        const category = await findCategory(data.categoryId, tx);
 
         const totalPrice = multiplyMoney(data.quantity, data.unitPrice);
 

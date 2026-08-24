@@ -135,79 +135,79 @@ export const expensePaths = {
     },
   },
 
-  "/api/v1/expenses/summary": {
-    get: {
-      tags: ["Expense"],
-      summary: "Get expense summary",
-      description:
-        "Retrieve a summary of expenses with optional filters. Requires ADMIN or STAFF role.",
-      security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          in: "query",
-          name: "startDate",
-          schema: { type: "string", format: "date-time" },
-          description: "Filter from this date",
-        },
-        {
-          in: "query",
-          name: "endDate",
-          schema: { type: "string", format: "date-time" },
-          description: "Filter up to this date",
-        },
-        {
-          in: "query",
-          name: "orderNumber",
-          schema: { type: "string" },
-          description: "Filter by order number",
-        },
-        {
-          in: "query",
-          name: "expenseCategoryId",
-          schema: { type: "string" },
-          description: "Filter by expense category ID",
-        },
-      ],
-      responses: {
-        "200": {
-          description: "Expenses summary retrieved successfully",
-          content: {
-            "application/json": {
-              schema: {
-                type: "object",
-                properties: {
-                  success: { type: "boolean", example: true },
-                  message: {
-                    type: "string",
-                    example: "Expenses summary retrieved successfully!",
-                  },
-                  data: {
-                    $ref: "#/components/schemas/ExpenseSummary",
-                  },
-                },
-              },
-            },
-          },
-        },
-        "401": {
-          description: "Unauthorized",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-        "403": {
-          description: "Forbidden",
-          content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/ErrorResponse" },
-            },
-          },
-        },
-      },
-    },
-  },
+  // "/api/v1/expenses/summary": {
+  //   get: {
+  //     tags: ["Expense"],
+  //     summary: "Get expense summary",
+  //     description:
+  //       "Retrieve a summary of expenses with optional filters. Requires ADMIN or STAFF role.",
+  //     security: [{ bearerAuth: [] }],
+  //     parameters: [
+  //       {
+  //         in: "query",
+  //         name: "startDate",
+  //         schema: { type: "string", format: "date-time" },
+  //         description: "Filter from this date",
+  //       },
+  //       {
+  //         in: "query",
+  //         name: "endDate",
+  //         schema: { type: "string", format: "date-time" },
+  //         description: "Filter up to this date",
+  //       },
+  //       {
+  //         in: "query",
+  //         name: "orderNumber",
+  //         schema: { type: "string" },
+  //         description: "Filter by order number",
+  //       },
+  //       {
+  //         in: "query",
+  //         name: "expenseCategoryId",
+  //         schema: { type: "string" },
+  //         description: "Filter by expense category ID",
+  //       },
+  //     ],
+  //     responses: {
+  //       "200": {
+  //         description: "Expenses summary retrieved successfully",
+  //         content: {
+  //           "application/json": {
+  //             schema: {
+  //               type: "object",
+  //               properties: {
+  //                 success: { type: "boolean", example: true },
+  //                 message: {
+  //                   type: "string",
+  //                   example: "Expenses summary retrieved successfully!",
+  //                 },
+  //                 data: {
+  //                   $ref: "#/components/schemas/ExpenseSummary",
+  //                 },
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //       "401": {
+  //         description: "Unauthorized",
+  //         content: {
+  //           "application/json": {
+  //             schema: { $ref: "#/components/schemas/ErrorResponse" },
+  //           },
+  //         },
+  //       },
+  //       "403": {
+  //         description: "Forbidden",
+  //         content: {
+  //           "application/json": {
+  //             schema: { $ref: "#/components/schemas/ErrorResponse" },
+  //           },
+  //         },
+  //       },
+  //     },
+  //   },
+  // },
 
   "/api/v1/expenses/{expenseNumber}": {
     get: {

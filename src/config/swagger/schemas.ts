@@ -343,7 +343,7 @@ export const components = {
       type: "object",
       properties: {
         id: { type: "string", example: "clxyz..." },
-        categoryId: { type: "string", example: "PCAT-000001" },
+        categoryId: { type: "string", example: "PROD-000001" },
         name: { type: "string", example: "Cakes" },
         description: { type: "string", example: "All types of cakes" },
         isActive: { type: "boolean", example: true },
@@ -367,7 +367,7 @@ export const components = {
       properties: {
         categoryId: {
           type: "string",
-          example: "PCAT-000001",
+          example: "PROD-000001",
         },
         productName: {
           type: "string",
@@ -396,7 +396,7 @@ export const components = {
       properties: {
         categoryId: {
           type: "string",
-          example: "PCAT-000001",
+          example: "PROD-000001",
         },
         productName: {
           type: "string",
@@ -425,7 +425,7 @@ export const components = {
       properties: {
         id: { type: "string", example: "clxyz..." },
         itemId: { type: "string", example: "ITEM-000001" },
-        orderId: { type: "string", example: "clxyz..." },
+        orderNumber: { type: "string", example: "clxyz..." },
         productCategoryId: { type: "string", example: "clxyz..." },
         productName: { type: "string", example: "Birthday Cake" },
         quantity: { type: "integer", example: 2 },

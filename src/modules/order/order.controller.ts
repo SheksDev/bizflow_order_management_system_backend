@@ -135,18 +135,18 @@ export const addOrderItem = async (
 
     const { orderNumber } = validateOrderRequestParams(req);
 
-    const { categoryId } = req.query;
+    // const { categoryId } = req.query;
     
-    if(typeof categoryId !== "string") {
-        throw new AppError("Invalid Category Id", HTTP_STATUS.BAD_REQUEST)
-    }
+    // if(typeof categoryId !== "string") {
+    //     throw new AppError("Invalid Category Id!", HTTP_STATUS.BAD_REQUEST)
+    // }
 
-    const item = await addOrderItemService(orderNumber, categoryId, req.body)
+    const item = await addOrderItemService(orderNumber, req.body)
 
     return sendSuccess(
         res,
         HTTP_STATUS.OK,
-        `New item added to order ${orderNumber}, category ${categoryId} successfully!`,
+        `New item added to order ${orderNumber}, category ${item.productCategoryId} successfully!`,
         item
     )
 }

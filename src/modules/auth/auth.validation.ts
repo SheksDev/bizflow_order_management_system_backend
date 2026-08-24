@@ -1,3 +1,4 @@
+import { UserRole } from "@prisma/client";
 import { email, z } from "zod";
 
 const registerBodySchema = z.object({
@@ -6,6 +7,10 @@ const registerBodySchema = z.object({
     email: z.email(),
     password: z.string().min(8),
     phone: z.string().optional(),
+    role: z.enum([
+        UserRole.ADMIN,
+        UserRole.STAFF
+    ])
 });
 
 export const registerSchema = z.object({
