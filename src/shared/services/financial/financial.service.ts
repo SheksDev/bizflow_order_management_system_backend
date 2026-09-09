@@ -18,6 +18,18 @@ type RefundFinancialData = {
     amount: Prisma.Decimal;
 };
 
+type OrderBalanceData = {
+    totalAmount: Prisma.Decimal;
+
+    payments: {
+        amount: Prisma.Decimal;
+        tipAmount: Prisma.Decimal | null;
+        refunds: {
+            amount: Prisma.Decimal;
+        }[];
+    }[];
+};
+
 
 
 export const calculatePaymentTotals = (
@@ -142,5 +154,66 @@ export const calculateProfit = ({
         netRevenue,
         profit,
         profitMargin,
+    };
+};
+
+
+
+export const calculateOrderBalance = ({
+    totalAmount,
+    payments,
+}: OrderBalanceData) => {
+    
+    let paidAmount = decimal(0);
+    let tips = decimal(0);
+    let refundedAmount = decimal(0);
+
+    for (const payment of payments) {
+
+        const tip = payment.tipAmount ?? decimal(0);
+
+        const paymentAmount = subtractMoney(
+            payment.amount,
+            tip
+        );
+
+        paidAmount = addMoney(paidAmount, paymentAmount);
+        tips = addMoney(tips, tip);
+
+        for (const refund of payment.refunds) {
+
+            refundedAmount = addMoney(
+                refundedAmount,
+                refund.amount
+            );
+        }
+    }
+
+    const netPaidAmount = subtractMoney(
+        paidAmount,
+        refundedAmount
+    );
+
+    const balanceDifference = subtractMoney(
+        totalAmount,
+        netPaidAmount
+    );
+
+    const outstanding = balanceDifference.isNegative()
+        ? decimal(0)
+        : balanceDifference;
+
+    const overpaid = balanceDifference.isNegative()
+        ? balanceDifference.abs()
+        : decimal(0);
+
+    return {
+        totalAmount,
+        paidAmount,
+        refundedAmount,
+        netPaidAmount,
+        outstanding,
+        overpaid,
+        tips,
     };
 };

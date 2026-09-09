@@ -3,12 +3,13 @@ import { AppError } from "@/shared/errors/AppError.js";
 import { HTTP_STATUS } from "@/shared/constants/http-status.js";
 import { AddOrderItemDTO, CreateOrderDTO, UpdateOrderDTO, UpdateOrderItemDTO } from "./order.validation.js";
 import { generatePublicId } from "@/shared/utils/generate-public-id.js";
-import { CounterName, OrderItemStatus, OrderStatus } from "@prisma/client";
+import { CounterName, OrderItemStatus, OrderStatus, PaymentStatus, RefundType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import { OrderQuery } from "./order.types.js";
 import { canTransitionOrderStatus } from "./order.constants.js";
 import { findOrder } from "@/shared/constants/findOrder.js";
 import { addMoney, decimal, multiplyMoney, subtractMoney } from "@/shared/utils/money.js";
+import { calculateOrderBalance } from "@/shared/services/financial/financial.service.js";
 
 // ================= CREATE ORDER ====================
 
@@ -611,3 +612,58 @@ export const deleteOrderService = async (
         },
     });
 };
+
+
+
+export const getOrderBalanceService = async (
+    orderNumber: string
+) => {
+
+    const order = await prisma.order.findUnique({
+
+        where: {
+            orderNumber,
+        },
+
+        select: {
+            orderNumber: true,
+            currentTotal: true,
+
+            payments: {
+                where: {
+                    status: PaymentStatus.COMPLETED,
+                },
+
+                select: {
+                    amount: true,
+                    tipAmount: true,
+
+                    refunds: {
+
+                        where: {
+                            refundType: RefundType.PAYMENT,
+                        },
+
+                        select: {
+                            amount: true,
+                        },
+                    },
+                },
+            },
+        },
+    });
+
+    if(!order) {
+        throw new AppError("Order Not Found!", HTTP_STATUS.NOT_FOUND);
+    }
+
+    const balance = calculateOrderBalance({
+        totalAmount: order.currentTotal,
+        payments: order.payments,
+    });
+
+    return {
+        orderNumber: order.orderNumber,
+        ...balance,
+    };
+}

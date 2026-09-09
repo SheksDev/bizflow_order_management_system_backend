@@ -4,7 +4,7 @@ import { UserRole } from "@prisma/client";
 import { Router } from "express";
 import { cancelOrderSchema, createOrderSchema, getOrderSchema, getOrdersQuerySchema, orderItemSchema, updateOrderItemSchema, updateOrderSchema, updateOrderStatusSchema, updateOrderTotalBodySchema } from "./order.validation.js";
 import { asyncHandler } from "@/shared/handlers/asyncHandler.js";
-import { addOrderItem, cancelOrder, cancelOrderItem, createOrder, deleteOrder, getAllOrders, getOrder, updateOrder, updateOrderItem, updateOrderStatus, updateOrderTotal } from "./order.controller.js";
+import { addOrderItem, cancelOrder, cancelOrderItem, createOrder, deleteOrder, getAllOrders, getOrder, getOrderBalance, updateOrder, updateOrderItem, updateOrderStatus, updateOrderTotal } from "./order.controller.js";
 
 
 const router = Router();
@@ -61,14 +61,12 @@ router.delete(
 )
 
 
-
 router.patch(
     "/:orderNumber/status",
     authorize(UserRole.ADMIN, UserRole.STAFF),
     validate(updateOrderStatusSchema),
     asyncHandler(updateOrderStatus)
 )
-
 
 
 router.post(
@@ -93,6 +91,14 @@ router.get(
     authorize(UserRole.ADMIN, UserRole.STAFF),
     validate(getOrderSchema),
     asyncHandler(getOrder)
+)
+
+
+router.get(
+    "/:orderNumber/balance",
+    authorize(UserRole.ADMIN, UserRole.STAFF),
+    validate(getOrderSchema),
+    asyncHandler(getOrderBalance)
 )
 
 

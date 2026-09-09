@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { addOrderItemService, cancelOrderItemService, cancelOrderService, createOrderService, deleteOrderService, getAllOrdersService, getOrderService, updateOrderItemService, updateOrderService, updateOrderStatusService, updateOrderTotalService } from "./order.service.js";
+import { addOrderItemService, cancelOrderItemService, cancelOrderService, createOrderService, deleteOrderService, getAllOrdersService, getOrderBalanceService, getOrderService, updateOrderItemService, updateOrderService, updateOrderStatusService, updateOrderTotalService } from "./order.service.js";
 import { sendSuccess } from "@/shared/utils/response.js";
 import { HTTP_STATUS } from "@/shared/constants/http-status.js";
 import { AppError } from "@/shared/errors/AppError.js";
@@ -245,5 +245,24 @@ export const deleteOrder  = async (
         res,
         HTTP_STATUS.OK,
         `Order ${orderNumber} successfully deleted!`,
+    )
+}
+
+
+
+export const getOrderBalance = async (
+    req: Request,
+    res: Response
+) => {
+
+    const { orderNumber } = validateOrderRequestParams(req);
+
+    const result = await getOrderBalanceService(orderNumber);
+
+    return sendSuccess(
+        res, 
+        HTTP_STATUS.OK,
+        `Balance for ${orderNumber} retrieved successfully!`,
+        result
     )
 }
