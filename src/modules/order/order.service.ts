@@ -182,7 +182,7 @@ export const createOrderService = async (
 
                 customerId: customer.customerId,
 
-                deliveryDate: data.deliveryDate,
+                deliveryDate: new Date(`${data.deliveryDate}`),
                 deliveryAddress: data.deliveryAddress,
                 deliveryMethod: data.deliveryMethod,
 
@@ -220,6 +220,8 @@ export const createOrderService = async (
         });
 
         return order;
+    }, {
+        timeout: 15000,
     })
 }
 
@@ -396,6 +398,8 @@ export const addOrderItemService = async (
         });
 
         return item;
+    }, {
+        timeout: 15000,
     })
 }
 
@@ -469,6 +473,8 @@ export const updateOrderItemService = async (
         })
 
         return updatedItem;
+    }, {
+        timeout: 15000,
     })
 }
 
@@ -540,6 +546,8 @@ export const cancelOrderItemService = async (
         });
 
         return updatedItem;
+    }, {
+        timeout: 15000,
     });
 }
 

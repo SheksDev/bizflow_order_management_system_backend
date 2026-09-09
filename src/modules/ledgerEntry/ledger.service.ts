@@ -197,7 +197,10 @@ export const getLedgersService = async (
     data: GetLedgerDTO["query"]
 ) => {
 
-    const skip = (data.page - 1) * data.limit;
+    const page = Number(data.page) || 1;
+    const limit = Number(data.limit) || 20;
+
+    const skip = (page - 1) * limit;
 
     const where: Prisma.LedgerEntryWhereInput = {};
 
@@ -218,12 +221,12 @@ export const getLedgersService = async (
         where.createdAt = {};
 
         if (data.startDate) {
-            where.createdAt.gte = data.startDate;
+            where.createdAt.gte = new Date(`${data.startDate}`);
         }
 
         if (data.endDate) {
 
-            const endDate = new Date(data.endDate);
+            const endDate = new Date(`${data.endDate}`);
 
             endDate.setDate(
                 endDate.getDate() + 1
@@ -265,13 +268,13 @@ export const getLedgersService = async (
         entries,
 
         pagination: {
-            page: data.page,
+            page,
 
-            limit: data.limit,
+            limit,
 
             total,
 
-            totalPages: Math.ceil(total / data.limit),
+            totalPages: Math.ceil(total / limit),
         },
     };
 }

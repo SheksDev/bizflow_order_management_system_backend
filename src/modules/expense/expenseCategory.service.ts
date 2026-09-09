@@ -58,6 +58,8 @@ export const createExpenseCategoryService = async (
                 description: data.description,
             },
         })
+    }, {
+        timeout: 15000,
     })
 }
 

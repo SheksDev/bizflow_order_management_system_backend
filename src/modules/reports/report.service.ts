@@ -4,6 +4,7 @@ import { AppError } from "@/shared/errors/AppError.js";
 import { HTTP_STATUS } from "@/shared/constants/http-status.js";
 import { LedgerDirection, OrderStatus, Prisma, RefundType } from "@prisma/client";
 import { addMoney, decimal, subtractMoney } from "@/shared/utils/money.js";
+import { calculateExpenseTotal, calculatePaymentTotals, calculateProfit, calculateRefundTotal } from "@/shared/services/financial/financial.service.js";
 
 
 
@@ -33,31 +34,11 @@ export const getProfitReportService = async (
         throw new AppError("Start date must be before end date", HTTP_STATUS.BAD_REQUEST);
     }
 
-    // const orders = await prisma.order.findMany({
-
-    //     where: {
-    //         status: OrderStatus.COMPLETED,
-
-    //         deliveryDate: {
-    //             gte: startDate,
-    //             lt: endDate,
-    //         },
-
-    //         deletedAt : null,
-    //     },
-
-    //     select: {
-    //         id: true,
-    //         orderNumber: true,
-    //         currentTotal: true,
-    //     }
-    // });
-
     const payments = await prisma.payment.findMany({
         where: {
             paymentDate: {
-                gte: startDate,
-                lt: endDate,
+                gte: new Date(`${startDate}`),
+                lt: new Date(`${endDate}`),
             },
         },
 
@@ -68,17 +49,11 @@ export const getProfitReportService = async (
         },
     });
 
-    let grossRevenue = decimal(0);
-    let tips = decimal(0);
+    const {
+        revenue: grossRevenue,
+        tips,
+    } = calculatePaymentTotals(payments);
 
-    for (const payment of payments) {
-
-        const tipAmount = payment.tipAmount ?? decimal(0);
-
-        grossRevenue = addMoney(grossRevenue, payment.amount);
-
-        tips = addMoney(tips, tipAmount);
-    }
 
     const refunds = await prisma.refund.findMany({
 
@@ -86,8 +61,8 @@ export const getProfitReportService = async (
             refundType: RefundType.PAYMENT,
 
             refundDate: {
-                gte: startDate,
-                lt: endDate,
+                gte: new Date(`${startDate}`),
+                lt: new Date(`${endDate}`),
             },
         },
 
@@ -96,20 +71,15 @@ export const getProfitReportService = async (
         },
     });
 
-    let totalRefunded = decimal(0);
-
-    for (const refund of refunds) {
-        totalRefunded = addMoney(totalRefunded, refund.amount);
-    }
-
-    const netRevenue = subtractMoney(grossRevenue, totalRefunded);
+    const totalRefunded = calculateRefundTotal(refunds);
+    
 
     const expenses = await prisma.expense.findMany({
 
         where: {
             expenseDate: {
-                gte: startDate,
-                lt: endDate,
+                gte: new Date(`${startDate}`),
+                lt: new Date(`${endDate}`),
             },
 
             deletedAt: null,
@@ -128,38 +98,34 @@ export const getProfitReportService = async (
         },
     });
 
-    let orderExpenses = decimal(0);
-    let businessExpenses = decimal(0);
-
-    for (const expense of expenses) {
-
-        if (expense.orderNumber) {
-            orderExpenses = addMoney(orderExpenses, expense.amount);
-        } else {
-            businessExpenses = addMoney(businessExpenses, expense.amount);
-        }
-    }
-
-    const totalExpenses = addMoney(orderExpenses, businessExpenses);
+    const {
+        orderExpenses,
+        businessExpenses,
+        total: totalExpenses,
+    } = calculateExpenseTotal(expenses);
 
     const orderCount = await prisma.order.count({
         where: {
             status: OrderStatus.COMPLETED,
 
             deliveryDate: {
-                gte: startDate,
-                lt: endDate,
+                gte: new Date(`${startDate}`),
+                lt: new Date(`${endDate}`),
             },
 
             deletedAt: null,
         },
     });
 
-    const profit = subtractMoney(netRevenue, totalExpenses);
-
-    const profitMargin = netRevenue.isZero()
-        ? decimal(0)
-        : profit.dividedBy(netRevenue).times(100);
+    const {
+        netRevenue,
+        profit,
+        profitMargin,
+    } = calculateProfit({
+        revenue: grossRevenue,
+        refunds: totalRefunded,
+        expenses: totalExpenses,
+    })
 
     return {
 
@@ -289,8 +255,8 @@ export const getMonthlyProfitReportService = async (
 
             where: {
                 paymentDate: {
-                    gte: startDate,
-                    lt: endDate,
+                    gte: new Date(`${startDate}`),
+                    lt: new Date(`${endDate}`),
                 },
             },
 
@@ -307,8 +273,8 @@ export const getMonthlyProfitReportService = async (
                 refundType: RefundType.PAYMENT,
 
                 refundDate: {
-                    gte: startDate,
-                    lt: endDate,
+                    gte: new Date(`${startDate}`),
+                    lt: new Date(`${endDate}`),
                 },
             },
 
@@ -322,8 +288,8 @@ export const getMonthlyProfitReportService = async (
 
             where: {
                 expenseDate: {
-                    gte: startDate,
-                    lt: endDate,
+                    gte: new Date(`${startDate}`),
+                    lt: new Date(`${endDate}`),
                 },
 
                 deletedAt: null,
@@ -342,8 +308,8 @@ export const getMonthlyProfitReportService = async (
                 status: OrderStatus.COMPLETED,
 
                 deliveryDate: {
-                    gte: startDate,
-                    lt: endDate,
+                    gte: new Date(`${startDate}`),
+                    lt: new Date(`${endDate}`),
                 },
 
                 deletedAt: null,
@@ -526,8 +492,8 @@ export const getCashFlowReportService = async (
 
         where: {
             createdAt: {
-                gte: startDate,
-                lt: endDate,
+                gte: new Date(`${startDate}`),
+                lt: new Date(`${endDate}`),
             },
         },
 
@@ -574,7 +540,7 @@ export const getCashFlowReportService = async (
 
         where: {
             createdAt: {
-                lt: startDate,
+                lt: new Date(`${startDate}`),
             },
         },
 

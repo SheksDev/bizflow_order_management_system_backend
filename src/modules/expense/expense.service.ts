@@ -91,10 +91,10 @@ export const createExpenseService = async (
 
     return prisma.$transaction(async (tx) => {
 
-        const category = await findCategory(data.expenseCategoryId, tx);
+        await findCategory(data.expenseCategoryId, tx);
 
         if (data.orderNumber) {
-            const order = await findOrder(data.orderNumber, tx);
+            await findOrder(data.orderNumber, tx);
         }
 
         const sequenceExpense = await generatePublicId(tx, CounterName.EXPENSE);
@@ -113,7 +113,7 @@ export const createExpenseService = async (
 
                 amount: decimal(data.amount),
 
-                expenseDate: data.expenseDate ?? new Date(),
+                expenseDate: new Date(`${data.expenseDate}`) ?? new Date(),
 
                 description: data.description ?? "",
 
@@ -151,6 +151,8 @@ export const createExpenseService = async (
         })
 
         return expense;
+    }, {
+        timeout: 10000,
     })
 }
 
@@ -185,11 +187,11 @@ export const getExpensesService = async (
         where.expenseDate = {};
 
         if (startDate) {
-            where.expenseDate.gte = startDate;
+            where.expenseDate.gte = new Date(`${startDate}`);
         }
 
         if (endDate) {
-            where.expenseDate.lte = endDate;
+            where.expenseDate.lte = new Date(`${endDate}`);
         }
     }
 
@@ -284,11 +286,11 @@ export const getExpenseSummaryService = async (
         where.expenseDate = {};
 
         if (startDate) {
-            where.expenseDate.gte = startDate;
+            where.expenseDate.gte = new Date(`${startDate}`);
         }
 
         if (endDate) {
-            where.expenseDate.lte = endDate;
+            where.expenseDate.lte = new Date(`${endDate}`);
         }
     }  
 
@@ -394,12 +396,12 @@ export const getMonthlyExpenseReportService = async (
             ...(startDate || endDate
                 ? {
                     expenseDate: {
-                        ...(startDate && {
-                            gte: startDate,
+                        ...(new Date(`${startDate}`) && {
+                            gte: new Date(`${startDate}`),
                         }),
 
-                        ...(endDate && {
-                            lt: endDate,
+                        ...(new Date(`${endDate}`) && {
+                            lt: new Date(`${endDate}`),
                         }),
                     },
                 }

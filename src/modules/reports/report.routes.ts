@@ -52,7 +52,7 @@ router.get(
 
 
 router.get(
-    "cash-flow",
+    "/cash-flow",
     authorize(UserRole.ADMIN),
     validate(cashFlowReportSchema),
     asyncHandler(getCashFlowReport)

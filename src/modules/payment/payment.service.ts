@@ -88,7 +88,7 @@ export const createPaymentService = async (
 
                 paymentMethod: data.paymentMethod,
 
-                paymentDate: data.paymentDate ?? new Date(),
+                paymentDate: new Date(`${data.paymentDate}`) ?? new Date(),
 
                 paymentSource: PaymentSource.MANUAL,
 
@@ -100,7 +100,7 @@ export const createPaymentService = async (
             },
         });
 
-        const ledgerType = payment.tipAmount
+        const ledgerType = payment.tipAmount.gt(0)
             ? LedgerEntryType.TIP
             : LedgerEntryType.ORDER_PAYMENT;
 
@@ -123,7 +123,7 @@ export const createPaymentService = async (
 
             amount: decimal(payment.amount),
 
-            description: payment.tipAmount
+            description: payment.tipAmount.gt(0)
                 ? `Tip received for ${payment.paymentNumber}`
                 : `Payment receieved for ${payment.orderNumber}`,
 
@@ -146,6 +146,8 @@ export const createPaymentService = async (
                 outstanding: maxZero(subtractMoney(outstanding, appliedAmount)),
             },
         }
+    }, {
+        timeout: 15000,
     })
 }
 
@@ -348,7 +350,7 @@ export const createRefundService = async (
 
                 refundMethod: data.refundMethod,
 
-                refundDate: data.refundDate ?? new Date(),
+                refundDate: new Date(`${data.refundDate}`) ?? new Date(),
 
                 reason: data.reason,
 
@@ -406,6 +408,8 @@ export const createRefundService = async (
         });
 
         return refund;
+    }, {
+        timeout: 15000,
     })
 }
 
