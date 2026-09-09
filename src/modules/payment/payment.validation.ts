@@ -27,7 +27,7 @@ export const createPaymentBodySchema = z.object({
 
 export const createPaymentSchema = z.object({
     params: z.object({
-        orderNumber: z.string(),
+        orderNumber: z.string().min(1),
     }),
 
     body: createPaymentBodySchema,
@@ -35,7 +35,7 @@ export const createPaymentSchema = z.object({
 
 export const getPaymentSchema = z.object({
     params: z.object({
-        paymentNumber: z.string(),
+        paymentNumber: z.string().min(1),
     }),
 });
 
@@ -75,7 +75,7 @@ export const createRefundBodySchema = z.object({
 
 export const createRefundSchema = z.object({
     params: z.object({
-        paymentNumber: z.string(),
+        paymentNumber: z.string().min(1),
     }),
 
     body: createRefundBodySchema,

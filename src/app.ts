@@ -11,6 +11,7 @@ import expenseRoutes from "@/modules/expense/expense.routes.js";
 import profitReportRoutes from "@/modules/reports/report.routes.js";
 import ledgerEntryRoutes from "@/modules/ledgerEntry/ledger.routes.js";
 import dashboardRoutes from "@/modules/dashboard/dashboard.routes.js";
+import receiptRoutes from "@/modules/receipt/receipt.routes.js";
 import cookieParser from "cookie-parser";
 import { authenticate } from "./shared/middleware/auth.middleware.js";
 import swaggerUi from "swagger-ui-express";
@@ -51,6 +52,8 @@ app.use(`${API_V1}/reports`, authenticate, profitReportRoutes);
 app.use(`${API_V1}/ledgers`, authenticate, ledgerEntryRoutes);
 
 app.use(`${API_V1}/dashboard`, authenticate, dashboardRoutes);
+
+app.use(`${API_V1}/receipts`, authenticate, receiptRoutes);
 
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

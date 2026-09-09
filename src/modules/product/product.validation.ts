@@ -13,7 +13,7 @@ export const updateProductCategoryBodySchema = createProductCategoryBodySchema.p
 
 export const updateProductCategorySchema = z.object({
     params: z.object({
-        categoryId: z.string(),
+        categoryId: z.string().min(1),
     }),
 
     body: updateProductCategoryBodySchema,
@@ -21,7 +21,7 @@ export const updateProductCategorySchema = z.object({
 
 export const productCategoryParamsSchema = z.object({
     params: z.object({
-        categoryId: z.string(),
+        categoryId: z.string().min(1),
     }),
 });
 

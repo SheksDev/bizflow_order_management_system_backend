@@ -23,7 +23,7 @@ export const updateCustomerBodySchema = createCustomerBodySchema.partial();
 
 export const updateCustomerSchema = z.object({
     params: z.object({
-        customerId: z.string(),
+        customerId: z.string().min(1),
     }),
 
     body: updateCustomerBodySchema,

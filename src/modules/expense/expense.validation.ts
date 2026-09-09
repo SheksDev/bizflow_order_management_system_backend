@@ -41,7 +41,7 @@ export const updateExpenseBodySchema = createExpenseBodySchema.partial();
 
 export const updateExpenseSchema = z.object({
     params: z.object({
-        expenseNumber: z.string(),
+        expenseNumber: z.string().min(1),
     }),
 
     body: updateExpenseBodySchema,
@@ -52,7 +52,7 @@ export type UpdateExpenseDTO = z.infer<typeof updateExpenseBodySchema>;
 
 export const getExpenseSchema = z.object({
     params: z.object({
-        expenseNumber: z.string(),
+        expenseNumber: z.string().min(1),
     }),
 });
 

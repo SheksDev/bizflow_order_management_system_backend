@@ -88,8 +88,8 @@ export const getOrdersQuerySchema = z.object({
 
 export const getOrderSchema = z.object({
     params: z.object({
-        orderNumber: z.string().optional(),
-        itemId: z.string().optional(),
+        orderNumber: z.string().min(1).optional(),
+        itemId: z.string().min(1).optional(),
     }),
 });
 
@@ -110,8 +110,8 @@ export const updateOrderBodySchema = z.object({
 
 export const updateOrderSchema = z.object({
     params: z.object({
-        orderNumber: z.string().optional(),
-        itemId: z.string().optional(),
+        orderNumber: z.string().min(1).optional(),
+        itemId: z.string().min(1).optional(),
     }),
 
     body: updateOrderBodySchema,
@@ -139,7 +139,7 @@ export const updateOrderStatusBodySchema = z.object({
 
 export const updateOrderStatusSchema = z.object({
     params: z.object({
-        orderNumber: z.string(),
+        orderNumber: z.string().min(1),
     }),
 
     body: updateOrderStatusBodySchema,
@@ -152,7 +152,7 @@ export const cancelOrderBodySchema = z.object({
 
 export const cancelOrderSchema = z.object({
     params: z.object({
-        orderNumber: z.string(),
+        orderNumber: z.string().min(1),
     }),
 
     body: cancelOrderBodySchema,

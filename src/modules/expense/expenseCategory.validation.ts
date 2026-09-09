@@ -32,7 +32,7 @@ export const updateExpenseCategoryBodySchema =
 
 export const updateExpenseCategorySchema = z.object({
     params: z.object({
-        categoryId: z.string(),
+        categoryId: z.string().min(1),
     }),
 
     body: updateExpenseCategoryBodySchema,
@@ -43,6 +43,6 @@ export type UpdateExpenseCategoryDTO = z.infer<typeof updateExpenseCategoryBodyS
 
 export const getExpenseCategorySchema = z.object({
     params: z.object({
-        categoryId: z.string(),
+        categoryId: z.string().min(1),
     }),
 });

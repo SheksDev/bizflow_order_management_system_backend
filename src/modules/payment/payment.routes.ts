@@ -5,6 +5,7 @@ import { Router } from "express";
 import { createPaymentSchema, createRefundSchema, getPaymentSchema } from "./payment.validation.js";
 import { asyncHandler } from "@/shared/handlers/asyncHandler.js";
 import { createPayment, createRefund, getOrderPayments, getPayment } from "./payment.controller.js";
+import { generatePaymentReceipt } from "../receipt/receipt.controller.js";
 
 
 
@@ -23,6 +24,14 @@ router.get(
     "/:orderNumber/payments",
     authorize(UserRole.ADMIN, UserRole.STAFF),
     asyncHandler(getOrderPayments)
+)
+
+
+router.post(
+    "/:paymentNumber/receipt",
+    authorize(UserRole.ADMIN, UserRole.STAFF),
+    validate(getPaymentSchema),
+    asyncHandler(generatePaymentReceipt)
 )
 
 

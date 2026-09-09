@@ -269,16 +269,29 @@ model LedgerAccount {
 model Receipt {
   id              String          @id @default(cuid())
   receiptNumber   String          @unique
+
   paymentId       String          @unique
+
+  amount          Decimal         @db.Decimal(12, 2)
+  tipAmount       Decimal         @default(0) @db.Decimal(12, 2)
+  receiptDate     DateTime        @default(now())
+
   generatedById   String
+
   storageProvider StorageProvider @default(LOCAL)
   storageKey      String?
+  fileName        String?
+  mimeType        String?
+
   emailedAt       DateTime?
+
   createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
   generatedBy     User            @relation("UserGeneratedReceipts", fields: [generatedById], references: [id])
   payment         Payment         @relation(fields: [paymentId], references: [id])
 
-  @@index([receiptNumber])
+  @@index([paymentId])
   @@index([generatedById])
   @@index([createdAt])
 }

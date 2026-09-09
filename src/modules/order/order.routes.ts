@@ -77,6 +77,14 @@ router.post(
 )
 
 
+router.get(
+    "/:orderNumber/balance",
+    authorize(UserRole.ADMIN, UserRole.STAFF),
+    validate(getOrderSchema),
+    asyncHandler(getOrderBalance)
+)
+
+
 router.patch(
     "/:orderNumber",
     authorize(UserRole.ADMIN, UserRole.STAFF),
@@ -91,14 +99,6 @@ router.get(
     authorize(UserRole.ADMIN, UserRole.STAFF),
     validate(getOrderSchema),
     asyncHandler(getOrder)
-)
-
-
-router.get(
-    "/:orderNumber/balance",
-    authorize(UserRole.ADMIN, UserRole.STAFF),
-    validate(getOrderSchema),
-    asyncHandler(getOrderBalance)
 )
 
 
