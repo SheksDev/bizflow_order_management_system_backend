@@ -261,7 +261,9 @@ const getOrdersSummary = async () => {
 
     let totalOrderValue = decimal(0);
     let totalPayments = decimal(0);
+    let totalTips = decimal(0);
     let totalOutstanding = decimal(0);
+    let totalOutstandingCount = 0;
     let totalOrderRefunded = decimal(0);
 
     const pendingOrders = orders
@@ -280,10 +282,12 @@ const getOrdersSummary = async () => {
         
         let totalRefunded = decimal(0);
         let totalPaid = decimal(0);
+        let tips = decimal(0);
 
         for (const payment of order.payments) {
 
             totalPaid = addMoney(totalPaid, payment.amount);
+            tips = addMoney(tips, payment.tipAmount);
 
             for (const refund of payment.refunds) {
 
@@ -298,9 +302,15 @@ const getOrdersSummary = async () => {
 
             totalOrderValue = addMoney(totalOrderValue, order.currentTotal);
 
+            totalTips = addMoney(totalTips, tips);
+
             if (orderOutstanding.gt(0)) {
                 totalOutstanding = addMoney(totalOutstanding, orderOutstanding);
+
+                totalOutstandingCount++;
             }
+
+            totalPayments = subtractMoney(totalOrderValue, totalOutstanding);
         }
 
         totalOrderRefunded = addMoney(totalOrderRefunded, totalRefunded);
@@ -308,14 +318,23 @@ const getOrdersSummary = async () => {
 
     return {
         totalOrder: total,
-        totalOrderValue,
-        totalOutstanding,
-        totalOrderRefunded,
-        orders: {
+        totalOrderValue: {
+            total,
+            amount: totalOrderValue,
             pendingOrders,
             completedOrders,
             cancelledOrders,
-        }
+        },
+        totalPayments: {
+            amount: totalPayments,
+            rate: totalPayments.div(totalOrderValue).mul(100),
+        },
+        totalTips,
+        totalOutstanding: {
+            amount: totalOutstanding,
+            volume: totalOutstandingCount,
+        },
+        totalOrderRefunded,
     }
 
 }
@@ -404,6 +423,7 @@ export const getAllOrdersService = async (
                                 OrderItemStatus.PENDING,
                                 OrderItemStatus.PREPARING,
                                 OrderItemStatus.READY,
+                                OrderItemStatus.CANCELLED,
                             ],
                         },
                     },
@@ -427,6 +447,7 @@ export const getAllOrdersService = async (
 
     return {
         orders,
+        summary: await getOrdersSummary(),
         pagination: {
             page,
             limit,
