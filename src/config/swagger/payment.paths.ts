@@ -299,4 +299,97 @@ export const paymentPaths = {
       },
     },
   },
+
+  "/api/v1/payments/{paymentNumber}/receipt": {
+    post: {
+      tags: ["Payment"],
+      summary: "Generate a receipt for a payment",
+      description:
+        "Generate a receipt for a completed payment. If a receipt already exists for the payment, the existing receipt is returned instead. Requires ADMIN or STAFF role.",
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: "path",
+          name: "paymentNumber",
+          required: true,
+          schema: { type: "string" },
+          description: "Payment number to generate a receipt for",
+          example: "PAY-000001",
+        },
+      ],
+      responses: {
+        "201": {
+          description: "Receipt generated successfully (or existing receipt returned)",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  success: { type: "boolean", example: true },
+                  message: {
+                    type: "string",
+                    example: "Receipt retrieved successfully!",
+                  },
+                  data: {
+                    type: "object",
+                    properties: {
+                      receiptNumber: {
+                        type: "string",
+                        example: "RCPT-000001",
+                      },
+                      amount: { type: "number", example: 25000.0 },
+                      tipAmount: { type: "number", example: 2000.0 },
+                      receiptDate: {
+                        type: "string",
+                        format: "date-time",
+                        example: "2026-01-15T10:30:00.000Z",
+                      },
+                      emailedAt: {
+                        type: "string",
+                        format: "date-time",
+                        nullable: true,
+                        example: null,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        "400": {
+          description: "Payment not completed — receipts can only be generated for completed payments",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "401": {
+          description: "Unauthorized",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "403": {
+          description: "Forbidden",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "404": {
+          description: "Payment not found",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+      },
+    },
+  },
 };

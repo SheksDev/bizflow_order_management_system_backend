@@ -1,8 +1,10 @@
-export type PaymentQuery = {
+export type ExpenseQuery = {
     page?: string,
     limit?: string,
-    status?: string,
-    orderNumber?: string,
+    expenseCategoryId?: string,
+    orderNumber?: string
+    startDate?: string
+    endDate?: string
     period?: "current_month" | "previous_month" | "custom";
     date?: string;
     month?: string;

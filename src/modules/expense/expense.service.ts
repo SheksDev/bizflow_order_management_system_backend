@@ -10,6 +10,8 @@ import { addMoney, decimal } from "@/shared/utils/money.js";
 import { USER_SELECT } from "@/shared/constants/prisma-select.js";
 import { createLedgerEntry, findLedgerAccount, generateLedgerNumber } from "../ledgerEntry/ledger.service.js";
 import { getMonthKey } from "@/shared/utils/date.js";
+import { getDashboardPeriod } from "../dashboard/dashboard.service.js";
+import { gte } from "zod";
 
 
 
@@ -169,37 +171,65 @@ export const getExpensesService = async (
         endDate,
         page,
         limit,
+        period,
+        date,
+        month
     } = query;
 
-    const where: Prisma.ExpenseWhereInput = {
+    let expenseDateFilter = {};
+    
+    if(period) {
+
+        const {
+            startDate,
+            endDate,
+        } = getDashboardPeriod (
+            period,
+            date,
+            month,
+        );
+
+        expenseDateFilter = {
+            expenseDate: {
+                gte: startDate,
+                lt: endDate,
+            },
+        };
+    }
+
+    const where = {
+
         deletedAt: null,
+
+        ...expenseDateFilter,
+
+        ...(startDate && endDate && {
+            expenseDate: {
+                gte: startDate,
+                lt: endDate
+            },
+        }),
+        
+
+        ...(expenseCategoryId && {
+            expenseCategoryId,
+        }),
+        
+
+        ...(orderNumber && {
+            orderNumber,
+        }),
+        
     };
-
-    if (orderNumber) {
-        where.orderNumber = orderNumber;
-    }
-
-    if (expenseCategoryId) {
-        where.expenseCategoryId = expenseCategoryId;
-    }
-
-    if (startDate || endDate) {
-        where.expenseDate = {};
-
-        if (startDate) {
-            where.expenseDate.gte = new Date(`${startDate}`);
-        }
-
-        if (endDate) {
-            where.expenseDate.lte = new Date(`${endDate}`);
-        }
-    }
 
     const skip = (page - 1) * limit;
 
     const [expenses, total] =
+
         await prisma.$transaction([
+
             prisma.expense.findMany({
+                
                 where,
 
                 include: {

@@ -69,6 +69,11 @@ export const getExpensesQuerySchema = z.object({
     page: z.coerce.number().int().positive().default(1),
 
     limit: z.coerce.number().int().min(1).max(100).default(20),
+
+    period: z.enum(["current_month", "previous_month", "custom"]).optional(),
+
+    date: z.string().trim().optional(),
+    month: z.string().trim().optional(),
 });
 
 export const getExpensesSchema = z.object({

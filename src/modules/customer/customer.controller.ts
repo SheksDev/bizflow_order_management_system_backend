@@ -57,21 +57,13 @@ export const getAllCustomers = async (
 
     const result = await getAllCustomersService(req.query);
 
-    const { page, limit, total, totalPages } = result.pagination
+    // const { page, limit, total, totalPages } = result.pagination
 
     return sendSuccess(
         res,
         HTTP_STATUS.OK,
         "All customers retrieved successfully",
-        {
-            customers: result.customers,
-            pagination: {
-                page: page,
-                limit: limit,
-                total: total,
-                totalPages: totalPages
-            }
-        }
+        result
     )
 }
 

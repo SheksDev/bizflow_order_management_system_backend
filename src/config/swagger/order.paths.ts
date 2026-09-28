@@ -632,6 +632,78 @@ export const orderPaths = {
     },
   },
 
+  "/api/v1/orders/{orderNumber}/balance": {
+    get: {
+      tags: ["Order"],
+      summary: "Get an order's payment balance",
+      description:
+        "Retrieve the payment balance for an order — total amount, amounts paid (net of tips), refunds, outstanding balance, overpaid amount, and tips. Requires ADMIN or STAFF role.",
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: "path",
+          name: "orderNumber",
+          required: true,
+          schema: { type: "string" },
+          description: "Order number",
+          example: "ORD-000001",
+        },
+      ],
+      responses: {
+        "200": {
+          description: "Order balance retrieved successfully",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  success: { type: "boolean", example: true },
+                  message: {
+                    type: "string",
+                    example: "Balance for ORD-000001 retrieved successfully!",
+                  },
+                  data: { $ref: "#/components/schemas/OrderBalance" },
+                },
+              },
+            },
+          },
+        },
+        "400": {
+          description: "Invalid order number",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "401": {
+          description: "Unauthorized",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "403": {
+          description: "Forbidden",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "404": {
+          description: "Order not found",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+      },
+    },
+  },
+
   "/api/v1/orders/{orderNumber}": {
     get: {
       tags: ["Order"],

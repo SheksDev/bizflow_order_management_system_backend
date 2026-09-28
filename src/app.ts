@@ -2,6 +2,7 @@ import express from "express";
 import { ErrorHandler } from "@/shared/middleware/error.middleware.js";
 import type { Request, Response, NextFunction } from "express";
 import authRoutes from "@/modules/auth/auth.routes.js";
+import businessRoutes from "@/modules/business/business.routes.js";
 import customerRoutes from "@/modules/customer/customer.routes.js";
 import productRoutes from "@/modules/product/product.routes.js";
 import orderRoutes from "@/modules/order/order.routes.js";
@@ -16,6 +17,7 @@ import cookieParser from "cookie-parser";
 import { authenticate } from "./shared/middleware/auth.middleware.js";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger.js";
+import cors from "cors";
 
 const app = express();
 
@@ -27,6 +29,13 @@ const logger = (req: Request, res: Response, next: NextFunction) => {
     next();
 }
 
+app.use(
+    cors({
+        origin: "http://localhost:5173",
+        credentials: true,
+    })
+);
+
 app.use(express.json());
 
 app.use(logger);
@@ -34,6 +43,8 @@ app.use(logger);
 app.use(cookieParser());
 
 app.use(`${API_V1}/auth`, authRoutes);
+
+app.use(`${API_V1}/business`, authenticate, businessRoutes);
 
 app.use(`${API_V1}/customers`, authenticate, customerRoutes);
 

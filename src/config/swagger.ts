@@ -9,6 +9,9 @@ import { expensePaths } from "./swagger/expense.paths.js";
 import { paymentPaths } from "./swagger/payment.paths.js";
 import { ledgerPaths } from "./swagger/ledger.paths.js";
 import { reportPaths } from "./swagger/report.paths.js";
+import { businessPaths } from "./swagger/business.paths.js";
+import { dashboardPaths } from "./swagger/dashboard.paths.js";
+import { receiptPaths } from "./swagger/receipt.paths.js";
 
 const spec = {
   openapi: "3.0.3",
@@ -63,6 +66,18 @@ const spec = {
       name: "Reports",
       description: "Financial reports — profit, expenses, and cash flow.",
     },
+    {
+      name: "Business",
+      description: "Business configuration — retrieve and update business profile settings.",
+    },
+    {
+      name: "Dashboard",
+      description: "Dashboard analytics — balance, revenue, expenses, and order statistics.",
+    },
+    {
+      name: "Receipt",
+      description: "Payment receipts — retrieval of generated receipts with full order and payment details.",
+    },
   ],
   paths: {
     ...authPaths,
@@ -74,6 +89,9 @@ const spec = {
     ...paymentPaths,
     ...ledgerPaths,
     ...reportPaths,
+    ...businessPaths,
+    ...dashboardPaths,
+    ...receiptPaths,
   },
   components,
 };

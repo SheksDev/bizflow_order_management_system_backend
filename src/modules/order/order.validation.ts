@@ -84,6 +84,11 @@ export const getOrdersQuerySchema = z.object({
     customerId: z.string().optional(),
 
     deliveryDate: z.coerce.date().optional(),
+
+    period: z.enum(["current_month", "previous_month", "custom"]).optional(),
+
+    date: z.string().trim().optional(),
+    month: z.string().trim().optional(),
 });
 
 export const getOrderSchema = z.object({

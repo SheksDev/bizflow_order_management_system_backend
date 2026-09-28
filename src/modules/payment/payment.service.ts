@@ -9,6 +9,8 @@ import { USER_SELECT } from "@/shared/constants/prisma-select.js";
 import { Prisma } from "@prisma/client";
 import { addMoney, decimal, maxZero, subtractMoney } from "@/shared/utils/money.js";
 import { createLedgerEntry, findLedgerAccount, generateLedgerNumber } from "../ledgerEntry/ledger.service.js";
+import { PaymentQuery } from "./payment.types.js";
+import { getDashboardPeriod } from "../dashboard/dashboard.service.js";
 
 
 const findPayment = async (
@@ -45,7 +47,7 @@ export const createPaymentService = async (
         const paymentAmount = decimal(data.amount);
         const tipAmount = decimal(data.tipAmount) ?? 0;
 
-        const appliedAmount = subtractMoney(paymentAmount, tipAmount);
+        // const appliedAmount = subtractMoney(paymentAmount, tipAmount);
 
         const payments = await tx.payment.findMany({
             where: {
@@ -66,9 +68,9 @@ export const createPaymentService = async (
         const orderTotal = decimal(order.currentTotal);
         const outstanding = subtractMoney(orderTotal, totalPaid);
 
-        if (appliedAmount > outstanding) {
+        if (paymentAmount > outstanding) {
             throw new AppError(
-                `Payment exceeds outstanding balance by ${subtractMoney(appliedAmount, outstanding)}`,
+                `Payment exceeds outstanding balance by ${subtractMoney(paymentAmount, outstanding)}`,
                 HTTP_STATUS.BAD_REQUEST
             );
         };
@@ -142,13 +144,103 @@ export const createPaymentService = async (
 
             summary: {
                 orderTotal,
-                totalPaid: addMoney(totalPaid, appliedAmount),
-                outstanding: maxZero(subtractMoney(outstanding, appliedAmount)),
+                totalPaid: addMoney(totalPaid, paymentAmount),
+                outstanding: maxZero(subtractMoney(outstanding, paymentAmount)),
             },
         }
     }, {
         timeout: 15000,
     })
+};
+
+
+
+export const getAllPaymentsService = async (
+    data: PaymentQuery
+) => {
+
+    const page = Number(data.page) || 1;
+    const limit = Number(data.limit) || 20;
+
+    const skip = (page - 1 ) * limit;
+
+    let orderDateFilter = {};
+
+    if(data.period) {
+
+        const {
+            startDate,
+            endDate,
+        } = getDashboardPeriod (
+            data.period,
+            data.date,
+            data.month,
+        );
+
+        orderDateFilter = {
+            paymentDate: {
+                gte: startDate,
+                lt: endDate,
+            },
+        };
+    }
+
+    const where = {
+        // deletedAt: null,
+
+        ...orderDateFilter,
+
+        ...(data.status && {
+            status: data.status as PaymentStatus,
+        }),
+        
+
+        ...(data.orderNumber && {
+            orderNumber: data.orderNumber,
+        }),
+        
+
+        // ...(data.search && {
+        //     status: data.status,
+        // }),
+        
+    };
+
+    const [payments, total] = await prisma.$transaction([
+        
+        prisma.payment.findMany({
+
+            where,
+
+            skip,
+            take: limit,
+
+            orderBy: {
+                createdAt: "desc",
+            },
+
+            include: {
+
+                refunds: true,
+            },
+        }),
+
+        prisma.payment.count({
+            where,
+        }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+        payments,
+        pagination: {
+            page,
+            limit,
+            total,
+            totalPages
+        }
+    }
 }
 
 

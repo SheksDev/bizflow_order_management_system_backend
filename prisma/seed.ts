@@ -97,9 +97,32 @@ async function main() {
         },
     });
 
+    const business = await prisma.business.upsert({
+
+        where: {
+            businessName: "Didun Delight",
+        },
+
+        create: {
+            businessName: "Didun Delight",
+            phone: "09082572339",
+            email: "didundelight@gmail.com",
+            address: "3, Olatunji Street, Ilaje, Bariga, Lagos",
+            currency: "NGN",
+            bankName: "PremiumTrust Bank",
+            accountName: "Oluwasekemi Eunice Ariyibi",
+            accountNumber: "0112637956",
+            instagram: "https://www.instagram.com/didundelight__?stkn=ZXd5cmZjN3J1aG01",
+            whatsapp: "https://wa.me/message/HCZAULAVAKDWC1",
+        },
+
+        update: {},
+    });
+
     console.log("✅ COUNTER: Counter seeded.");
     console.log("✅ MAIN_CASH: ledger account seeded.");
     console.log("✅ Admin seeded:", admin.email);
+    console.log("✅ Business seeded:", business.businessName);
 }
 
 main()

@@ -2,9 +2,9 @@ import { authorize } from "@/shared/middleware/rbac.middleware.js";
 import { validate } from "@/shared/middleware/validate.middleware.js";
 import { UserRole } from "@prisma/client";
 import { Router } from "express";
-import { createPaymentSchema, createRefundSchema, getPaymentSchema } from "./payment.validation.js";
+import { createPaymentSchema, createRefundSchema, getPaymentSchema, getPaymentsQuerySchema } from "./payment.validation.js";
 import { asyncHandler } from "@/shared/handlers/asyncHandler.js";
-import { createPayment, createRefund, getOrderPayments, getPayment } from "./payment.controller.js";
+import { createPayment, createRefund, getAllPayments, getOrderPayments, getPayment } from "./payment.controller.js";
 import { generatePaymentReceipt } from "../receipt/receipt.controller.js";
 
 
@@ -17,6 +17,13 @@ router.post(
     authorize(UserRole.ADMIN, UserRole.STAFF),
     validate(createPaymentSchema),
     asyncHandler(createPayment)
+)
+
+router.get(
+    "/all",
+    authorize(UserRole.ADMIN, UserRole.STAFF),
+    validate(getPaymentsQuerySchema),
+    asyncHandler(getAllPayments)
 )
 
 

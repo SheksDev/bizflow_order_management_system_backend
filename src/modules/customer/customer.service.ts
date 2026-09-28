@@ -1,11 +1,12 @@
 import { prisma } from "@/config/prisma.js";
 import { CreateCustomerDTO, UpdateCustomerDTO } from "./customer.validation.js";
 import { generatePublicId } from "@/shared/utils/generate-public-id.js";
-import { CounterName } from "@prisma/client";
+import { CounterName, OrderStatus } from "@prisma/client";
 import { JwtUserPayload } from "@/types/express.js";
 import { AppError } from "@/shared/errors/AppError.js";
 import { HTTP_STATUS } from "@/shared/constants/http-status.js";
 import { CustomerQuery } from "./customer.types.js";
+import { addMoney, decimal, subtractMoney } from "@/shared/utils/money.js";
 
 // ================= CREATE CUSTOMER ====================
 
@@ -21,7 +22,17 @@ const findCustomer = async (
         },
 
         include: {
-            orders: true,
+            orders: {
+                include: {
+                    items: true,
+
+                    payments: {
+                        include: {
+                            refunds: true,
+                        }
+                    },
+                },
+            },
         }
     });
 
@@ -36,6 +47,18 @@ export const createCustomerService = async (
     data: CreateCustomerDTO,
     user: JwtUserPayload
 ) => {
+
+    const existing =  await prisma.customer.findFirst({
+
+        where: {
+            name: data.name,
+        },
+    });
+
+    if(existing) {
+        throw new AppError("Customer Already Exists", HTTP_STATUS.CONFLICT);
+    };
+    
 
     return prisma.$transaction(async (tx) => {
 
@@ -72,11 +95,173 @@ export const getCustomerService = async (
 
     const customer =  await findCustomer(customerId);
 
-    return customer;
+    const customerData = () => {
+
+        let totalOrderValue = decimal(0);
+        let totalOutstanding = decimal(0);
+        let totalOrderRefunded = decimal(0);
+
+        const orders = customer.orders.map((order) => {
+
+            let totalPaid = decimal(0);
+            let totalRefunded = decimal(0);
+
+            for (const payment of order.payments) {
+
+                totalPaid = addMoney(
+                    totalPaid,
+                    payment.amount
+                );
+
+                for (const refund of payment.refunds) {
+
+                    totalRefunded = addMoney(
+                        totalRefunded,
+                        refund.amount
+                    );
+                }
+            }
+
+            const orderOutstanding = addMoney(
+                totalRefunded,
+                subtractMoney(
+                    order.currentTotal,
+                    totalPaid
+                )
+            );
+
+            if (order.status !== OrderStatus.CANCELLED) {
+                totalOrderValue = addMoney(
+                    totalOrderValue,
+                    order.currentTotal
+                );
+
+                if (orderOutstanding.gt(0)) {
+                    totalOutstanding = addMoney(
+                        totalOutstanding,
+                        orderOutstanding
+                    );
+                }
+            }
+
+            totalOrderRefunded = addMoney(totalOrderRefunded, totalRefunded);
+
+            return {
+                ...order, 
+                totalPaid,
+                totalRefunded,
+                outstanding: orderOutstanding,
+            };
+        });
+
+        return {
+            ...customer,
+            totalOrderValue,
+            totalOutstanding,
+            totalOrderRefunded,
+            orders,
+        };
+    };
+
+    return customerData();
 }
 
 
-// ================= GET ALLCUSTOMERS ====================
+
+// ================= GET ALL CUSTOMERS SUMMARY ====================
+
+const getCustomerSummary = async () => {
+
+    const [customers, total] = await prisma.$transaction([
+
+        prisma.customer.findMany({
+
+            where: {
+                deletedAt: null,
+            },
+
+            orderBy: {
+                createdAt: "desc",
+            },
+
+            include: {
+                orders: {
+                    include: {
+                        payments: {
+                            include: {
+                                refunds: true,
+                            }
+                        }
+                    }
+                },
+            }
+        }),
+
+        prisma.customer.count({
+            where: {
+                deletedAt: null,
+            }
+        }),
+    ]);
+
+    let totalOrderValue = decimal(0);
+    let totalOutstanding = decimal(0);
+    let totalOrderRefunded = decimal(0);
+    let totalOrder = 0;
+
+    const completedOrders = customers
+        .flatMap(customer => customer.orders)
+        .filter(order => order.status === OrderStatus.COMPLETED)
+        .length;
+
+    for (const customer of customers) {
+
+        totalOrder += customer.orders.length;
+        
+        for (const order of customer.orders) {
+
+            let totalRefunded = decimal(0);
+            let totalPaid = decimal(0);
+
+            for (const payment of order.payments) {
+
+                totalPaid = addMoney(totalPaid, payment.amount);
+
+                for (const refund of payment.refunds) {
+
+                    totalRefunded = addMoney(totalRefunded, refund.amount);
+                }
+
+            } 
+
+            const orderOutstanding = addMoney(totalRefunded, subtractMoney(order.currentTotal, totalPaid));
+
+            if (order.status !== OrderStatus.CANCELLED) {
+
+                totalOrderValue = addMoney(totalOrderValue, order.currentTotal);
+
+                if (orderOutstanding.gt(0)) {
+                    totalOutstanding = addMoney(totalOutstanding, orderOutstanding);
+                }
+            }
+
+            totalOrderRefunded = addMoney(totalOrderRefunded, totalRefunded);
+        }
+    }
+
+    return {
+        totalCustomer: total,
+        totalOrder,
+        totalOrderValue,
+        totalOutstanding,
+        totalOrderRefunded,
+        completedOrders
+    }
+
+}
+
+
+// ================= GET ALL CUSTOMERS ====================
 
 export const getAllCustomersService = async (data: CustomerQuery) => {
 
@@ -98,7 +283,15 @@ export const getAllCustomersService = async (data: CustomerQuery) => {
                 createdAt: "desc",
             },
             include: {
-                orders: true,
+                orders: {
+                    include: {
+                        payments: {
+                            include: {
+                                refunds: true,
+                            }
+                        }
+                    }
+                },
             }
         }),
 
@@ -109,10 +302,56 @@ export const getAllCustomersService = async (data: CustomerQuery) => {
         }),
     ]);
 
+    const customerData = customers.map((customer) => {
+
+        let totalOrderValue = decimal(0);
+        let totalOutstanding = decimal(0);
+        let totalOrderRefunded = decimal(0);
+
+        for (const order of customer.orders) {
+
+            let totalRefunded = decimal(0);
+            let totalPaid = decimal(0);
+
+            for (const payment of order.payments) {
+
+                totalPaid = addMoney(totalPaid, payment.amount);
+
+                for (const refund of payment.refunds) {
+
+                    totalRefunded = addMoney(totalRefunded, refund.amount);
+                }
+
+            } 
+
+            const orderOutstanding = addMoney(totalRefunded, subtractMoney(order.currentTotal, totalPaid));
+
+            if (order.status !== OrderStatus.CANCELLED) {
+
+                totalOrderValue = addMoney(totalOrderValue, order.currentTotal);
+
+                if (orderOutstanding.gt(0)) {
+                    totalOutstanding = addMoney(totalOutstanding, orderOutstanding);
+                }
+
+            }
+
+            totalOrderRefunded = addMoney(totalOrderRefunded, totalRefunded);
+        }
+
+        return {
+            ...customer,
+            totalOrderValue,
+            totalOutstanding,
+            totalOrderRefunded,
+        };
+    });
+
     const totalPages = Math.ceil(total / limit);
 
     return {
-        customers,
+        customers: customerData,
+        summary: await getCustomerSummary(),
         pagination: {
             page,
             limit,
@@ -123,7 +362,7 @@ export const getAllCustomersService = async (data: CustomerQuery) => {
 }
 
 
-// ================= GET ALL CUSTOMERS ====================
+// ================= UPDATE A CUSTOMER ====================
 
 export const updateCustomerService = async (
     customerId: string,
@@ -134,7 +373,13 @@ export const updateCustomerService = async (
 
     return prisma.customer.update({
         where: {customerId},
-        data,
+        data: {
+            name: data.name,
+            phone: data.phone,
+            email: data.email,
+            defaultAddress: data.address,
+            notes: data.notes,
+        },
     });
 }
 

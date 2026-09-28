@@ -10,6 +10,7 @@ import { canTransitionOrderStatus } from "./order.constants.js";
 import { findOrder } from "@/shared/constants/findOrder.js";
 import { addMoney, decimal, multiplyMoney, subtractMoney } from "@/shared/utils/money.js";
 import { calculateOrderBalance } from "@/shared/services/financial/financial.service.js";
+import { getDashboardPeriod } from "../dashboard/dashboard.service.js";
 
 // ================= CREATE ORDER ====================
 
@@ -97,7 +98,7 @@ const findItem = async (
     tx?: Prisma.TransactionClient
 ) => {
 
-    const item = await (prisma || tx).orderItem.findUnique({
+    const item = await (tx || prisma).orderItem.findUnique({
 
         where: {
             itemId: itemId,
@@ -228,6 +229,99 @@ export const createOrderService = async (
 
 
 
+const getOrdersSummary = async () => {
+
+    const [orders, total] = await prisma.$transaction([
+
+        prisma.order.findMany({
+
+            where: {
+                deletedAt: null,
+            },
+
+            orderBy: {
+                createdAt: "desc",
+            },
+
+            include: {
+                payments: {
+                    include: {
+                        refunds: true
+                    }
+                },
+            }
+        }),
+
+        prisma.order.count({
+            where: {
+                deletedAt: null,
+            }
+        }),
+    ]);
+
+    let totalOrderValue = decimal(0);
+    let totalPayments = decimal(0);
+    let totalOutstanding = decimal(0);
+    let totalOrderRefunded = decimal(0);
+
+    const pendingOrders = orders
+        .filter(order => order.status === OrderStatus.PENDING)
+        .length;
+
+    const completedOrders = orders
+        .filter(order => order.status === OrderStatus.COMPLETED)
+        .length;
+
+    const cancelledOrders = orders
+        .filter(order => order.status === OrderStatus.CANCELLED)
+        .length;
+
+    for (const order of orders) {
+        
+        let totalRefunded = decimal(0);
+        let totalPaid = decimal(0);
+
+        for (const payment of order.payments) {
+
+            totalPaid = addMoney(totalPaid, payment.amount);
+
+            for (const refund of payment.refunds) {
+
+                totalRefunded = addMoney(totalRefunded, refund.amount);
+            }
+
+        } 
+
+        const orderOutstanding = addMoney(totalRefunded, subtractMoney(order.currentTotal, totalPaid));
+
+        if (order.status !== OrderStatus.CANCELLED) {
+
+            totalOrderValue = addMoney(totalOrderValue, order.currentTotal);
+
+            if (orderOutstanding.gt(0)) {
+                totalOutstanding = addMoney(totalOutstanding, orderOutstanding);
+            }
+        }
+
+        totalOrderRefunded = addMoney(totalOrderRefunded, totalRefunded);
+    }
+
+    return {
+        totalOrder: total,
+        totalOrderValue,
+        totalOutstanding,
+        totalOrderRefunded,
+        orders: {
+            pendingOrders,
+            completedOrders,
+            cancelledOrders,
+        }
+    }
+
+}
+
+
+
 export const getAllOrdersService = async (
     data: OrderQuery
 ) => {
@@ -237,13 +331,58 @@ export const getAllOrdersService = async (
 
     const skip = (page - 1 ) * limit;
 
+    let orderDateFilter = {};
+
+    if(data.period) {
+
+        const {
+            startDate,
+            endDate,
+        } = getDashboardPeriod (
+            data.period,
+            data.date,
+            data.month,
+        );
+
+        orderDateFilter = {
+            orderDate: {
+                gte: startDate,
+                lt: endDate,
+            },
+        };
+    }
+
+    const where = {
+        deletedAt: null,
+
+        ...orderDateFilter,
+
+        ...(data.status && {
+            status: data.status as OrderStatus,
+        }),
+        
+
+        ...(data.customerId && {
+            customerId: data.customerId,
+        }),
+        
+
+        ...(data.deliveryDate && {
+            deliveryDate: data.deliveryDate,
+        }),
+        
+
+        // ...(data.search && {
+        //     status: data.status,
+        // }),
+        
+    };
+
     const [orders, total] = await prisma.$transaction([
         
         prisma.order.findMany({
 
-            where: {
-                deletedAt: null,
-            },
+            where,
 
             skip,
             take: limit,
@@ -280,9 +419,7 @@ export const getAllOrdersService = async (
         }),
 
         prisma.order.count({
-            where: {
-                deletedAt: null,
-            }
+            where,
         }),
     ]);
 
@@ -422,7 +559,7 @@ export const updateOrderItemService = async (
 
         if(data.categoryId) {
 
-            const category = await findCategory(categoryId, tx);
+            const category = await findCategory(data.categoryId, tx);
 
             categoryId = category.categoryId;
         }

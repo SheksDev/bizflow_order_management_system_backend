@@ -1178,5 +1178,370 @@ export const components = {
         count: { type: "integer", example: 6 },
       },
     },
+
+    // ─── Business ─────────────────────────────────────
+    Currency: {
+      type: "string",
+      enum: ["NGN"],
+    },
+    UpdateBusinessBody: {
+      type: "object",
+      properties: {
+        businessName: { type: "string", minLength: 1, example: "BizFlow Bakery" },
+        phone: {
+          type: "string",
+          minLength: 11,
+          nullable: true,
+          example: "+2348012345678",
+        },
+        email: {
+          type: "string",
+          format: "email",
+          nullable: true,
+          example: "hello@bizflow.com",
+        },
+        address: {
+          type: "string",
+          minLength: 5,
+          nullable: true,
+          example: "12 Allen Avenue, Ikeja, Lagos",
+        },
+        currency: { $ref: "#/components/schemas/Currency" },
+        bankName: { type: "string", nullable: true, example: "GTBank" },
+        accountName: {
+          type: "string",
+          nullable: true,
+          example: "BizFlow Bakery Ltd",
+        },
+        accountNumber: {
+          type: "string",
+          minLength: 11,
+          nullable: true,
+          example: "01234567890",
+        },
+        receiptFooter: {
+          type: "string",
+          nullable: true,
+          example: "Thank you for your patronage!",
+        },
+        instagram: {
+          type: "string",
+          minLength: 5,
+          nullable: true,
+          example: "@bizflowbakery",
+        },
+        facebook: {
+          type: "string",
+          minLength: 5,
+          nullable: true,
+          example: "bizflowbakery",
+        },
+        whatsapp: {
+          type: "string",
+          minLength: 5,
+          nullable: true,
+          example: "+2348012345678",
+        },
+        logoKey: {
+          type: "string",
+          minLength: 5,
+          nullable: true,
+          example: "uploads/logo.png",
+        },
+      },
+    },
+    Business: {
+      type: "object",
+      properties: {
+        id: { type: "string", example: "clxyz..." },
+        businessName: { type: "string", example: "BizFlow Bakery" },
+        phone: { type: "string", nullable: true, example: "+2348012345678" },
+        email: {
+          type: "string",
+          format: "email",
+          nullable: true,
+          example: "hello@bizflow.com",
+        },
+        address: {
+          type: "string",
+          nullable: true,
+          example: "12 Allen Avenue, Ikeja, Lagos",
+        },
+        currency: { $ref: "#/components/schemas/Currency" },
+        bankName: { type: "string", nullable: true, example: "GTBank" },
+        accountName: {
+          type: "string",
+          nullable: true,
+          example: "BizFlow Bakery Ltd",
+        },
+        accountNumber: {
+          type: "string",
+          nullable: true,
+          example: "01234567890",
+        },
+        receiptFooter: {
+          type: "string",
+          nullable: true,
+          example: "Thank you for your patronage!",
+        },
+        instagram: {
+          type: "string",
+          nullable: true,
+          example: "@bizflowbakery",
+        },
+        facebook: {
+          type: "string",
+          nullable: true,
+          example: "bizflowbakery",
+        },
+        whatsapp: {
+          type: "string",
+          nullable: true,
+          example: "+2348012345678",
+        },
+        logoKey: {
+          type: "string",
+          nullable: true,
+          example: "uploads/logo.png",
+        },
+        createdAt: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-01T00:00:00.000Z",
+        },
+        updatedAt: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-15T10:30:00.000Z",
+        },
+      },
+    },
+
+    // ─── Dashboard ────────────────────────────────────
+    // ─── Dashboard ────────────────────────────────────
+    DashboardPeriodType: {
+      type: "string",
+      enum: ["CURRENT_MONTH", "PREVIOUS_MONTH", "CUSTOM"],
+    },
+    DashboardComparisonDirection: {
+      type: "string",
+      enum: ["INCREASE", "DECREASE", "NO_CHANGE"],
+    },
+    DashboardPeriod: {
+      type: "object",
+      properties: {
+        type: { $ref: "#/components/schemas/DashboardPeriodType" },
+        startDate: {
+          type: "string",
+          format: "date-time",
+          example: "2026-09-01T00:00:00.000Z",
+        },
+        endDate: {
+          type: "string",
+          format: "date-time",
+          example: "2026-10-01T00:00:00.000Z",
+        },
+      },
+    },
+    DashboardComparison: {
+      type: "object",
+      description:
+        "Percentage change of a metric versus the immediately preceding period of equal length. `percentageChange` is null when the previous period total was zero (no baseline available).",
+      properties: {
+        percentageChange: {
+          type: "number",
+          nullable: true,
+          example: 12.5,
+          description:
+            "Change vs the previous period, in percent, rounded to 2 decimal places. Null when comparison is unavailable.",
+        },
+        direction: {
+          $ref: "#/components/schemas/DashboardComparisonDirection",
+        },
+        comparisonAvailable: {
+          type: "boolean",
+          example: true,
+          description:
+            "False when the previous period total was zero and no baseline exists.",
+        },
+      },
+    },
+    DashboardSummary: {
+      type: "object",
+      properties: {
+        period: {
+          $ref: "#/components/schemas/DashboardPeriod",
+        },
+        orders: {
+          type: "object",
+          properties: {
+            active: {
+              type: "integer",
+              example: 108,
+              description: "Pending + completed orders in the period",
+            },
+            pending: { type: "integer", example: 8 },
+            completed: { type: "integer", example: 100 },
+            cancelled: { type: "integer", example: 12 },
+            unpaidBalances: {
+              type: "integer",
+              example: 5,
+              description:
+                "Non-cancelled orders whose payments (net of refunds) do not yet cover the order total",
+            },
+          },
+        },
+        financials: {
+          type: "object",
+          properties: {
+            grossOrderValue: {
+              type: "number",
+              example: 485000.0,
+              description:
+                "Sum of currentTotal across non-cancelled orders in the period",
+            },
+            paymentsReceived: {
+              type: "number",
+              example: 450000.0,
+              description:
+                "Payments (completed, partially refunded, or refunded) in the period, minus refunds issued in the period",
+            },
+            balanceDue: {
+              type: "number",
+              example: 35000.0,
+              description:
+                "Sum of unpaid balances across non-cancelled orders",
+            },
+            outflow: {
+              type: "number",
+              example: 80000.0,
+              description: "Total expenses recorded in the period",
+            },
+            outflowEntries: {
+              type: "integer",
+              example: 25,
+              description: "Number of expense entries in the period",
+            },
+          },
+        },
+        comparisons: {
+          type: "object",
+          properties: {
+            grossOrderValue: {
+              $ref: "#/components/schemas/DashboardComparison",
+            },
+            paymentReceived: {
+              $ref: "#/components/schemas/DashboardComparison",
+            },
+          },
+        },
+      },
+    },
+
+    // ─── Order Balance ────────────────────────────────
+    OrderBalance: {
+      type: "object",
+      properties: {
+        orderNumber: { type: "string", example: "ORD-000001" },
+        totalAmount: { type: "number", example: 60000.0 },
+        paidAmount: { type: "number", example: 40000.0 },
+        refundedAmount: { type: "number", example: 5000.0 },
+        netPaidAmount: { type: "number", example: 35000.0 },
+        outstanding: { type: "number", example: 25000.0 },
+        overpaid: { type: "number", example: 0 },
+        tips: { type: "number", example: 2000.0 },
+      },
+    },
+
+    // ─── Receipt ──────────────────────────────────────
+    ReceiptResponse: {
+      type: "object",
+      properties: {
+        receiptNumber: { type: "string", example: "RCPT-000001" },
+        receiptDate: {
+          type: "string",
+          format: "date-time",
+          example: "2026-01-15T10:30:00.000Z",
+        },
+        emailAt: {
+          type: "string",
+          format: "date-time",
+          nullable: true,
+          example: null,
+        },
+        customer: {
+          type: "object",
+          properties: {
+            customerId: { type: "string", example: "CUS-000001" },
+            name: { type: "string", example: "Acme Corp" },
+            phone: { type: "string", example: "+2348012345678" },
+            email: {
+              type: "string",
+              format: "email",
+              example: "contact@acme.com",
+            },
+          },
+        },
+        order: {
+          type: "object",
+          properties: {
+            orderNumber: { type: "string", example: "ORD-000001" },
+            deliveryDate: {
+              type: "string",
+              format: "date-time",
+              example: "2026-02-01T12:00:00.000Z",
+            },
+            items: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  itemId: { type: "string", example: "ITEM-000001" },
+                  productName: { type: "string", example: "Birthday Cake" },
+                  quantity: { type: "integer", example: 2 },
+                  unitPrice: { type: "number", example: 15000.0 },
+                  totalPrice: { type: "number", example: 30000.0 },
+                  details: {
+                    type: "object",
+                    example: { size: "3-tier", flavour: "Vanilla" },
+                  },
+                  productCategory: {
+                    type: "object",
+                    properties: {
+                      categoryId: { type: "string", example: "PCAT-000001" },
+                      name: { type: "string", example: "Cakes" },
+                      description: {
+                        type: "string",
+                        example: "All types of cakes",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        payment: {
+          type: "object",
+          properties: {
+            paymentNumber: { type: "string", example: "PAY-000001" },
+            paymentMethod: { $ref: "#/components/schemas/PaymentMethod" },
+            paymentDate: {
+              type: "string",
+              format: "date-time",
+              example: "2026-01-15T10:30:00.000Z",
+            },
+          },
+        },
+        financials: {
+          type: "object",
+          properties: {
+            orderPayment: { type: "number", example: 25000.0 },
+            tipReceived: { type: "number", example: 2000.0 },
+            totalReceived: { type: "number", example: 27000.0 },
+          },
+        },
+      },
+    },
   },
 };

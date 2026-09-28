@@ -5,4 +5,7 @@ export type OrderQuery = {
     status?: string,
     customerId?: string,
     deliveryDate?: string
+    period?: "current_month" | "previous_month" | "custom";
+    date?: string;
+    month?: string;
 }

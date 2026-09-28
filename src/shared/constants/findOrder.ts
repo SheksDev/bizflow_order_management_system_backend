@@ -10,7 +10,7 @@ export const findOrder = async (
     tx?: Prisma.TransactionClient
 ) => {
 
-    const order = await (prisma || tx).order.findUnique({
+    const order = await (tx || prisma).order.findUnique({
 
         where: {
             orderNumber,

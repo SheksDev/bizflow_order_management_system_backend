@@ -12,7 +12,7 @@ export const validate =
             });
 
             if (!result.success) {
-            return next(result.error);
+                return next(result.error);
             }
 
             next();

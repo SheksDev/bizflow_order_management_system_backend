@@ -29,19 +29,19 @@ router.post(
 
 
 router.get(
-    "/:expenseNumber",
+    "/all",
     authorize(UserRole.ADMIN, UserRole.STAFF),
-    validate(getExpenseSchema),
-    asyncHandler(getExpense)
+    validate(getExpensesQuerySchema),
+    asyncHandler(getExpenses)
 )
 
 
 
 router.get(
-    "/all",
+    "/:expenseNumber",
     authorize(UserRole.ADMIN, UserRole.STAFF),
-    validate(getExpensesQuerySchema),
-    asyncHandler(getExpenses)
+    validate(getExpenseSchema),
+    asyncHandler(getExpense)
 )
 
 

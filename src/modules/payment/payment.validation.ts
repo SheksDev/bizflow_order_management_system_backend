@@ -43,6 +43,40 @@ export type CreatePaymentDTO = z.infer<typeof createPaymentBodySchema>;
 
 
 
+export const getPaymentsQuerySchema = z.object({
+
+    page: z.coerce.number().int().min(1).default(1),
+
+    limit: z.coerce
+        .number()
+        .int()
+        .min(1)
+        .max(100)
+        .default(20),
+
+    status: z
+        .enum([
+            "PENDING",
+            "CONFIRMED",
+            "IN_PROGRESS",
+            "READY",
+            "OUT_FOR_DELIVERY",
+            "DELIVERED",
+            "COMPLETED",
+            "CANCELLED",
+        ])
+        .optional(),
+
+    orderNumber: z.string().optional(),
+
+    period: z.enum(["current_month", "previous_month", "custom"]).optional(),
+
+    date: z.string().trim().optional(),
+    month: z.string().trim().optional(),
+});
+
+
+
 export const createRefundBodySchema = z.object({
     amount: z.coerce
         .number()

@@ -41,8 +41,7 @@ export const calculatePaymentTotals = (
 
     for (const payment of payments) {
 
-        const tip =
-            payment.tipAmount ?? decimal(0);
+        const tip = payment.tipAmount ?? decimal(0);
 
         revenue = addMoney(
             revenue,

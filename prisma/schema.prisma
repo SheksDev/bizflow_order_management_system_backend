@@ -9,7 +9,7 @@ datasource db {
 
 model Business {
   id            String   @id @default(cuid())
-  businessName  String
+  businessName  String   @unique 
   phone         String?
   email         String?
   address       String?

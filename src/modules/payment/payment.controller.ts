@@ -1,7 +1,7 @@
 import { HTTP_STATUS } from "@/shared/constants/http-status.js";
 import { AppError } from "@/shared/errors/AppError.js";
 import type { Request, Response, NextFunction } from "express";
-import { createPaymentService, createRefundService, getOrderPaymentsService, getPaymentService } from "./payment.service.js";
+import { createPaymentService, createRefundService, getAllPaymentsService, getOrderPaymentsService, getPaymentService } from "./payment.service.js";
 import { sendSuccess } from "@/shared/utils/response.js";
 
 
@@ -41,6 +41,33 @@ export const createPayment = async (
         HTTP_STATUS.CREATED,
         "Payment recorded successfully!",
         result
+    )
+}
+
+
+
+export const getAllPayments = async (
+    req: Request,
+    res: Response
+) => {
+
+    const result = await getAllPaymentsService(req.query);
+
+    const { page, limit, total, totalPages } = result.pagination;
+
+    return sendSuccess(
+        res, 
+        HTTP_STATUS.OK,
+        "All payments retrieved successfully!",
+        {
+            payments: result.payments,
+            pagination: {
+                page: page,
+                limit: limit,
+                total: total,
+                totalPages: totalPages
+            }
+        }
     )
 }
 
